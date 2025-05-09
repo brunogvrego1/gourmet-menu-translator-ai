@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -171,7 +170,7 @@ const Pricing = () => {
     {
       icon: <Globe className="text-gourmet-purple w-6 h-6" />,
       title: 'Adaptação Cultural',
-      description: 'Não apenas traduzimos palavras, mas adaptamos culturalmente os pratos para que façam sentido no contexto do país de destino.'
+      description: 'Não apenas traduzimos palavras, mas adaptamos culturalmente os pratos para que façam sentido no contexto do turista que esta a conhecer a nossa culinária pela primeira vez.'
     },
     {
       icon: <Utensils className="text-gourmet-purple w-6 h-6" />,
