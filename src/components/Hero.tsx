@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Hero = () => {
   return (
@@ -16,11 +17,24 @@ const Hero = () => {
             com nossa tecnologia de inteligência artificial especializada em gastronomia.
           </p>
           <div className="flex gap-4">
-            <Button size="lg" className="bg-gourmet-purple hover:bg-gourmet-dark-purple text-white font-medium">
-              Traduzir agora
+            <Button
+              size="lg"
+              className="bg-gourmet-purple hover:bg-gourmet-dark-purple text-white font-medium"
+              asChild
+            >
+              <Link to="/auth">
+                Traduzir agora
+              </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-gourmet-purple text-gourmet-purple hover:bg-gourmet-soft-purple">
-              Saiba mais
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-gourmet-purple text-gourmet-purple hover:bg-gourmet-soft-purple"
+              asChild
+            >
+              <Link to="/auth">
+                Saiba mais
+              </Link>
             </Button>
           </div>
         </div>
