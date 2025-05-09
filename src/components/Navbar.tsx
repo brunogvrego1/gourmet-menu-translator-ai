@@ -34,10 +34,7 @@ const Navbar = () => {
         <Link to="/" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
           Início
         </Link>
-        <Link to="/" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
-          Como Funciona
-        </Link>
-        <Link to="/" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
+        <Link to="/precos" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
           Preços
         </Link>
         <Link to="/" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
@@ -80,10 +77,7 @@ const Navbar = () => {
             <Link to="/" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
               Início
             </Link>
-            <Link to="/" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
-              Como Funciona
-            </Link>
-            <Link to="/" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
+            <Link to="/precos" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
               Preços
             </Link>
             <Link to="/" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
