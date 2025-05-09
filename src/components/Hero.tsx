@@ -32,7 +32,7 @@ const Hero = () => {
               className="border-gourmet-purple text-gourmet-purple hover:bg-gourmet-soft-purple"
               asChild
             >
-              <Link to="/auth">
+              <Link to="/precos">
                 Saiba mais
               </Link>
             </Button>
