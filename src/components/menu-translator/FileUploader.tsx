@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { createWorker } from 'tesseract.js';
+import { Loader } from 'lucide-react';
 
 type FileUploaderProps = {
   onFileProcessed: (text: string) => void;
@@ -11,6 +13,8 @@ type FileUploaderProps = {
 const FileUploader = ({ onFileProcessed }: FileUploaderProps) => {
   const [dragActive, setDragActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [processingStage, setProcessingStage] = useState('');
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -41,21 +45,18 @@ const FileUploader = ({ onFileProcessed }: FileUploaderProps) => {
 
   const processFile = async (file: File) => {
     setIsLoading(true);
+    setProgress(0);
+    
     try {
-      // Check file type
       if (file.type.includes('image')) {
-        // For images, we'd need OCR - for now just show a message
+        // Use Tesseract.js for OCR on images
         toast.info('Processando imagem. Isso pode levar um momento.');
-        // Here you would integrate with an OCR service
-        // For now, let's just simulate with a placeholder
-        setTimeout(() => {
-          onFileProcessed("Menu Exemplo\n\nEntradas\nSalada Caesar - $12\nSopa do dia - $8\n\nPratos Principais\nFilé Mignon - $35\nSalmão Grelhado - $28");
-          setIsLoading(false);
-          toast.success('Imagem processada! Edite o texto se necessário antes de traduzir.');
-        }, 2000);
+        await extractTextFromImage(file);
       } else if (file.type === 'application/pdf') {
-        // For PDFs, we'd need PDF text extraction
+        // For PDFs, we still use the simulated approach (would need a PDF extraction library)
+        setProcessingStage('Extraindo texto do PDF');
         toast.info('Extraindo texto do PDF...');
+        
         // Simulated for now
         setTimeout(() => {
           onFileProcessed("Menu PDF Exemplo\n\nEntradas\nBruschetta - €10\nCarpaccio - €14\n\nPratos Principais\nRisotto ai Funghi - €22\nPasta Carbonara - €18");
@@ -67,12 +68,47 @@ const FileUploader = ({ onFileProcessed }: FileUploaderProps) => {
         const text = await file.text();
         onFileProcessed(text);
         toast.success('Arquivo carregado com sucesso!');
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Error processing file:', error);
       toast.error('Erro ao processar arquivo. Tente novamente.');
+      setIsLoading(false);
+    }
+  };
+
+  const extractTextFromImage = async (file: File) => {
+    try {
+      const worker = await createWorker('por+eng');
+      
+      // Set up progress updates
+      worker.setProgressHandler((progress) => {
+        setProgress(Math.round(progress.progress * 100));
+        setProcessingStage(progress.status);
+      });
+
+      // Convert the file to a format Tesseract can use
+      const imageUrl = URL.createObjectURL(file);
+      
+      // Recognize text
+      const result = await worker.recognize(imageUrl);
+      console.log('OCR Result:', result);
+      
+      // Clean up
+      URL.revokeObjectURL(imageUrl);
+      await worker.terminate();
+      
+      // Pass the extracted text to the parent component
+      onFileProcessed(result.data.text);
+      
+      toast.success('Texto extraído com sucesso! Edite se necessário antes de traduzir.');
+    } catch (error) {
+      console.error('OCR error:', error);
+      toast.error('Erro ao extrair texto da imagem. Tente novamente.');
     } finally {
       setIsLoading(false);
+      setProgress(0);
+      setProcessingStage('');
     }
   };
 
@@ -89,25 +125,43 @@ const FileUploader = ({ onFileProcessed }: FileUploaderProps) => {
           onDrop={handleDrop}
           onClick={() => document.getElementById('file-upload')?.click()}
         >
-          <div className="w-16 h-16 bg-gourmet-soft-purple rounded-full flex items-center justify-center mb-4">
-            <span className="text-2xl">📄</span>
-          </div>
-          <p className="text-lg font-medium mb-2">
-            Arraste e solte seu arquivo aqui
-          </p>
-          <p className="text-sm text-gray-500 mb-4">
-            ou clique para selecionar (JPG, PNG, PDF)
-          </p>
-          <input
-            id="file-upload"
-            type="file"
-            accept="image/jpeg,image/png,application/pdf,text/plain"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          <Button disabled={isLoading} className="bg-gourmet-purple hover:bg-gourmet-dark-purple">
-            {isLoading ? 'Processando...' : 'Selecionar arquivo'}
-          </Button>
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <Loader className="w-12 h-12 text-gourmet-purple animate-spin" />
+              <div className="text-center">
+                <p className="text-lg font-medium">{processingStage}</p>
+                <div className="w-64 h-2 bg-gray-200 rounded-full mt-2">
+                  <div 
+                    className="h-full bg-gourmet-purple rounded-full transition-all duration-300" 
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <p className="text-sm text-gray-500 mt-1">{progress}%</p>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="w-16 h-16 bg-gourmet-soft-purple rounded-full flex items-center justify-center mb-4">
+                <span className="text-2xl">📄</span>
+              </div>
+              <p className="text-lg font-medium mb-2">
+                Arraste e solte seu arquivo aqui
+              </p>
+              <p className="text-sm text-gray-500 mb-4">
+                ou clique para selecionar (JPG, PNG, PDF)
+              </p>
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/jpeg,image/png,application/pdf,text/plain"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <Button className="bg-gourmet-purple hover:bg-gourmet-dark-purple">
+                Selecionar arquivo
+              </Button>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>
