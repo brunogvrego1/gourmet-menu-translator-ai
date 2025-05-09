@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
-import { Edit, Trash2, Upload, Camera } from 'lucide-react';
+import { Edit, Trash2, Upload, Camera, Globe, Languages } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import FileUploader from '../menu-translator/FileUploader';
@@ -17,6 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { translateText } from '@/services/translationService';
 
 interface Menu {
   id: string;
@@ -33,6 +36,34 @@ const MenuManager = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null);
   const [showFileUploader, setShowFileUploader] = useState(false);
+  const [fromLanguage, setFromLanguage] = useState('auto');
+  const [toLanguages, setToLanguages] = useState<string[]>([]);
+  const [translationResults, setTranslationResults] = useState<Record<string, string>>({});
+  const [selectedTranslationLang, setSelectedTranslationLang] = useState('');
+  const [translating, setTranslating] = useState(false);
+  const [showTranslationOptions, setShowTranslationOptions] = useState(false);
+
+  const languages: Record<string, string> = {
+    'auto': 'Detectar automaticamente',
+    'pt': 'Português',
+    'en': 'Inglês',
+    'es': 'Espanhol', 
+    'fr': 'Francês',
+    'it': 'Italiano',
+    'de': 'Alemão',
+    'ja': 'Japonês',
+    'zh': 'Chinês',
+    'ru': 'Russo',
+    'ar': 'Árabe'
+  };
+
+  const toggleLanguage = (lang: string) => {
+    if (toLanguages.includes(lang)) {
+      setToLanguages(toLanguages.filter(l => l !== lang));
+    } else {
+      setToLanguages([...toLanguages, lang]);
+    }
+  };
 
   React.useEffect(() => {
     if (user) {
@@ -56,6 +87,33 @@ const MenuManager = () => {
       toast.error('Erro ao carregar seus cardápios');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleTranslate = async () => {
+    if (!menuContent.trim()) {
+      toast.error('Por favor, adicione conteúdo ao cardápio antes de traduzir');
+      return;
+    }
+
+    if (!toLanguages.length) {
+      toast.error('Selecione pelo menos um idioma para traduzir');
+      return;
+    }
+
+    try {
+      setTranslating(true);
+      const results = await translateText(menuContent, fromLanguage, toLanguages, selectedMenu || undefined);
+      setTranslationResults(results);
+      
+      if (Object.keys(results).length > 0) {
+        setSelectedTranslationLang(Object.keys(results)[0]);
+        toast.success(`Tradução concluída para ${Object.keys(results).length} idioma(s)`);
+      }
+    } catch (error) {
+      console.error('Translation error:', error);
+    } finally {
+      setTranslating(false);
     }
   };
 
@@ -98,6 +156,8 @@ const MenuManager = () => {
       setMenuName('');
       setMenuContent('');
       setSelectedMenu(null);
+      setTranslationResults({});
+      setShowTranslationOptions(false);
       fetchUserMenus();
     } catch (error: any) {
       console.error('Error saving menu:', error.message);
@@ -112,6 +172,8 @@ const MenuManager = () => {
     setMenuContent(menu.content);
     setSelectedMenu(menu.id);
     setShowFileUploader(false);
+    setTranslationResults({});
+    setShowTranslationOptions(false);
   };
 
   const handleDeleteMenu = async (id: string) => {
@@ -133,6 +195,8 @@ const MenuManager = () => {
         setMenuName('');
         setMenuContent('');
         setSelectedMenu(null);
+        setTranslationResults({});
+        setShowTranslationOptions(false);
       }
     } catch (error: any) {
       console.error('Error deleting menu:', error.message);
@@ -204,6 +268,50 @@ const MenuManager = () => {
     // setMenuContent(ocrResult);
   };
 
+  const handleSaveTranslatedMenu = async () => {
+    if (!selectedTranslationLang || Object.keys(translationResults).length === 0) {
+      toast.error('Selecione uma tradução para salvar');
+      return;
+    }
+
+    const translatedContent = translationResults[selectedTranslationLang];
+    const languageName = languages[selectedTranslationLang] || selectedTranslationLang;
+    
+    try {
+      setLoading(true);
+      
+      // Create a new menu with the translated content
+      const { error } = await supabase
+        .from('menus')
+        .insert({
+          name: `${menuName} (${languageName})`,
+          content: translatedContent,
+          user_id: user?.id
+        });
+      
+      if (error) throw error;
+      toast.success(`Tradução salva como novo cardápio: ${menuName} (${languageName})`);
+      
+      // Reset form and refresh menus
+      fetchUserMenus();
+    } catch (error: any) {
+      console.error('Error saving translated menu:', error.message);
+      toast.error('Erro ao salvar o cardápio traduzido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setMenuName('');
+    setMenuContent('');
+    setSelectedMenu(null);
+    setShowFileUploader(false);
+    setTranslationResults({});
+    setToLanguages([]);
+    setShowTranslationOptions(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-md">
@@ -271,7 +379,92 @@ const MenuManager = () => {
               />
             </div>
             
-            <div className="flex space-x-3">
+            {menuContent && (
+              <div className="pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowTranslationOptions(!showTranslationOptions)}
+                  className="flex items-center gap-2"
+                >
+                  <Globe size={16} />
+                  {showTranslationOptions ? 'Esconder opções de tradução' : 'Mostrar opções de tradução'}
+                </Button>
+                
+                {showTranslationOptions && (
+                  <div className="mt-4 p-4 border rounded-md">
+                    <h3 className="text-md font-medium mb-3 flex items-center">
+                      <Languages className="mr-2 h-4 w-4" /> Selecione os idiomas para tradução
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                      {Object.entries(languages)
+                        .filter(([key]) => key !== 'auto')
+                        .map(([code, name]) => (
+                          <div key={code} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`lang-${code}`} 
+                              checked={toLanguages.includes(code)} 
+                              onCheckedChange={() => toggleLanguage(code)} 
+                            />
+                            <Label htmlFor={`lang-${code}`}>{name}</Label>
+                          </div>
+                        ))}
+                    </div>
+                    
+                    <Button 
+                      onClick={handleTranslate} 
+                      disabled={translating || toLanguages.length === 0}
+                      className="bg-gourmet-purple"
+                    >
+                      {translating ? 'Traduzindo...' : 'Traduzir agora'}
+                    </Button>
+                    
+                    {Object.keys(translationResults).length > 0 && (
+                      <div className="mt-4 space-y-4">
+                        <div>
+                          <label htmlFor="translationLanguage" className="block text-sm font-medium text-gray-700 mb-1">
+                            Selecione o idioma da tradução
+                          </label>
+                          <select
+                            id="translationLanguage"
+                            value={selectedTranslationLang}
+                            onChange={(e) => setSelectedTranslationLang(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md"
+                          >
+                            {Object.keys(translationResults).map(lang => (
+                              <option key={lang} value={lang}>
+                                {languages[lang] || lang}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Conteúdo traduzido
+                          </label>
+                          <Textarea
+                            value={translationResults[selectedTranslationLang] || ''}
+                            readOnly
+                            className="min-h-[200px]"
+                          />
+                        </div>
+                        
+                        <Button 
+                          onClick={handleSaveTranslatedMenu} 
+                          className="bg-gourmet-purple"
+                        >
+                          Salvar como novo cardápio
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            <div className="flex space-x-3 pt-2">
               <Button 
                 onClick={handleSaveMenu} 
                 className="bg-gourmet-purple" 
@@ -280,16 +473,12 @@ const MenuManager = () => {
                 {loading ? 'Salvando...' : selectedMenu ? 'Atualizar cardápio' : 'Salvar cardápio'}
               </Button>
               
-              {selectedMenu && (
+              {(selectedMenu || menuContent) && (
                 <Button 
                   variant="outline" 
-                  onClick={() => {
-                    setMenuName('');
-                    setMenuContent('');
-                    setSelectedMenu(null);
-                  }}
+                  onClick={resetForm}
                 >
-                  Cancelar edição
+                  Cancelar
                 </Button>
               )}
             </div>
