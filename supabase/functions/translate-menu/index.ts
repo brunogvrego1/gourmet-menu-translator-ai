@@ -100,8 +100,8 @@ serve(async (req) => {
         // Use the newly created credits record
         if (newCredits) {
           console.log("Using newly created credits:", newCredits);
-          // Each language counts as 1 credit
-          const requiredCredits = toLanguages.length;
+          // UPDATED: Each translation costs 10 credits, regardless of language count
+          const requiredCredits = 10 * toLanguages.length;
           const availableCredits = newCredits.total_credits - newCredits.used_credits;
           
           if (availableCredits < requiredCredits) {
@@ -119,8 +119,8 @@ serve(async (req) => {
       }
     } else {
       console.log("User credits:", credits);
-      // Each language counts as 1 credit
-      const requiredCredits = toLanguages.length;
+      // UPDATED: Each translation costs 10 credits, regardless of language count
+      const requiredCredits = 10 * toLanguages.length;
       const availableCredits = credits.total_credits - credits.used_credits;
       
       if (availableCredits < requiredCredits) {
@@ -148,8 +148,8 @@ serve(async (req) => {
 
     // Update user's credits using the admin client (bypassing RLS)
     try {
-      // Fixed: Use a direct numeric value for incrementing credits
-      const creditsToAdd = toLanguages.length;
+      // UPDATED: Calculate credits to add - now 10 credits per language
+      const creditsToAdd = 10 * toLanguages.length;
       const { error: updateError } = await supabaseAdmin
         .from('credits')
         .update({
