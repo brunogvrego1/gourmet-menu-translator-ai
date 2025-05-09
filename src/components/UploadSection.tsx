@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Globe, Translate } from 'lucide-react';
+import { Globe, Languages } from 'lucide-react';
 import { toast } from 'sonner';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useToast } from '@/hooks/use-toast';
@@ -214,7 +214,7 @@ const UploadSection = () => {
               <CardContent className="pt-6">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-medium flex items-center">
-                    <Translate className="mr-2 h-4 w-4" /> Tradução
+                    <Languages className="mr-2 h-4 w-4" /> Tradução
                   </h3>
                   <select 
                     className="border border-gray-300 rounded-md px-2 py-1 text-sm"
