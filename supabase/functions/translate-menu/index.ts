@@ -150,13 +150,12 @@ serve(async (req) => {
     try {
       // UPDATED: Calculate credits to add - now 1 credit per language
       const creditsToAdd = 1 * toLanguages.length;
+      
+      // Fix: Use a direct update instead of RPC call that's causing errors
       const { error: updateError } = await supabaseAdmin
         .from('credits')
         .update({
-          used_credits: supabaseAdmin.rpc('increment_credits', { 
-            user_id_param: user.id, 
-            credits_to_add: creditsToAdd 
-          }),
+          used_credits: credits ? credits.used_credits + creditsToAdd : creditsToAdd,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);
@@ -172,6 +171,7 @@ serve(async (req) => {
 
     // Record the translations in the translations table (one entry per language)
     for (const targetLang of toLanguages) {
+      // Fix: Remove the translation_method field which doesn't exist in the table
       const { error: translationError } = await supabaseAdmin
         .from('translations')
         .insert({
@@ -181,8 +181,7 @@ serve(async (req) => {
           target_language: targetLang,
           original_content: text,
           translated_content: translations[targetLang],
-          status: 'completed',
-          translation_method: useDeepSeek ? 'deepseek' : 'default'
+          status: 'completed'
         });
 
       if (translationError) {
