@@ -12,6 +12,8 @@ type FormData = {
   password: string;
   firstName?: string;
   lastName?: string;
+  companyName?: string;
+  phone?: string;
 };
 
 const Auth = () => {
@@ -29,7 +31,14 @@ const Auth = () => {
       if (isLogin) {
         await signIn(data.email, data.password);
       } else {
-        await signUp(data.email, data.password, data.firstName, data.lastName);
+        await signUp(
+          data.email, 
+          data.password, 
+          data.firstName, 
+          data.lastName,
+          data.companyName,
+          data.phone
+        );
         // After successful signup, switch to login view
         setIsLogin(true);
       }
@@ -81,6 +90,30 @@ const Auth = () => {
                     type="text"
                     className="mt-1"
                     placeholder="Sobrenome"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
+                    Nome da empresa
+                  </Label>
+                  <Input
+                    id="companyName"
+                    {...register('companyName')}
+                    type="text"
+                    className="mt-1"
+                    placeholder="Nome da empresa"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                    Telefone
+                  </Label>
+                  <Input
+                    id="phone"
+                    {...register('phone')}
+                    type="tel"
+                    className="mt-1"
+                    placeholder="Telefone"
                   />
                 </div>
               </>
