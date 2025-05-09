@@ -1,8 +1,15 @@
 
 project_id = "sjhbbwunbpjrbngbozvt"
 
+[auth]
+# Enable password protection for better security
+enable_hibp_check = true
+# Enable TOTP MFA for better security
+enable_totp_mfa = true
+
 [functions.create-payment]
 verify_jwt = true
 
 [functions.verify-payment]
 verify_jwt = true
+
