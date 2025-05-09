@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -20,16 +20,19 @@ const Auth = () => {
   const { signIn, signUp, user, loading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>();
+  const navigate = useNavigate();
 
-  // If user is already logged in, redirect to home
+  // If user is already logged in, redirect to dashboard
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/seu-cardapio" replace />;
   }
 
   const onSubmit = async (data: FormData) => {
     try {
       if (isLogin) {
         await signIn(data.email, data.password);
+        // After successful login, navigate will not be needed as the component will re-render
+        // and the user condition above will redirect
       } else {
         await signUp(
           data.email, 
