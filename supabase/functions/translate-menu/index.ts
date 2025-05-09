@@ -213,13 +213,17 @@ serve(async (req) => {
 async function translateWithDeepSeek(text: string, fromLanguage: string, targetLang: string): Promise<string> {
   console.log(`Translating from ${fromLanguage} to ${targetLang} using DeepSeek API`);
   
-  // Example template for DeepSeek prompt
-  const systemPrompt = `You are a professional translator specializing in translating menu items from ${getLangName(fromLanguage)} to ${getLangName(targetLang)}. 
-  Translate the following menu content accurately, preserving culinary terms when appropriate. 
-  Maintain the original formatting including sections, prices, and descriptions. 
-  Your translation should sound natural and appropriate for a restaurant menu.`;
+  // Specialized culinary translation prompt
+  const systemPrompt = `Você é um tradutor gastronômico profissional, com foco em adaptar menus e cardápios para turistas, mantendo o charme e relevância cultural do original. Ao traduzir de ${getLangName(fromLanguage)} para ${getLangName(targetLang)}, preserve o estilo do restaurante e destaque ingredientes ou preparações típicas com explicações sutis e elegantes.
+
+- Traduza como se estivesse explicando o prato para um cliente estrangeiro exigente.
+- Evite traduções literais.
+- Use termos que comuniquem o *espírito* do prato.
+- Inclua observações culturais curtas quando necessário (ex: [popular in Bahia], [similar to risotto]).
+
+Evite repetir palavras, use sinônimos criativos, preserve a intenção original.`;
   
-  const userPrompt = `Translate this menu content from ${getLangName(fromLanguage)} to ${getLangName(targetLang)}:\n\n${text}`;
+  const userPrompt = `Traduza este cardápio do ${getLangName(fromLanguage)} para ${getLangName(targetLang)}:\n\n${text}`;
   
   try {
     // Make request to DeepSeek API
