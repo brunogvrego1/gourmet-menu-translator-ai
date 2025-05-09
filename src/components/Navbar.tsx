@@ -42,16 +42,21 @@ const Navbar = () => {
         </Link>
         
         {user ? (
-          <div className="flex items-center space-x-2">
-            <Avatar>
-              <AvatarFallback className="bg-gourmet-purple text-white">
-                {getUserInitials()}
-              </AvatarFallback>
-              {/* We can add user avatar here if available */}
-            </Avatar>
-            <Button variant="outline" onClick={() => signOut()}>
-              Sair
-            </Button>
+          <div className="flex items-center space-x-4">
+            <Link to="/seu-cardapio" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
+              O seu cardápio
+            </Link>
+            <div className="flex items-center space-x-2">
+              <Avatar>
+                <AvatarFallback className="bg-gourmet-purple text-white">
+                  {getUserInitials()}
+                </AvatarFallback>
+                {/* We can add user avatar here if available */}
+              </Avatar>
+              <Button variant="outline" onClick={() => signOut()}>
+                Sair
+              </Button>
+            </div>
           </div>
         ) : (
           <Link to="/auth">
@@ -83,6 +88,12 @@ const Navbar = () => {
             <Link to="/contato" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
               Contato
             </Link>
+            
+            {user && (
+              <Link to="/seu-cardapio" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
+                O seu cardápio
+              </Link>
+            )}
             
             {user ? (
               <>

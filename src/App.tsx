@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import PricingPage from "./pages/Pricing";
 import ContactPage from "./pages/Contact";
+import UserMenu from "./pages/UserMenu";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -26,12 +27,11 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/precos" element={<PricingPage />} />
             <Route path="/contato" element={<ContactPage />} />
-            {/* Protected routes can be added like this:
-            <Route path="/dashboard" element={
+            <Route path="/seu-cardapio" element={
               <ProtectedRoute>
-                <Dashboard />
+                <UserMenu />
               </ProtectedRoute>
-            } /> */}
+            } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
