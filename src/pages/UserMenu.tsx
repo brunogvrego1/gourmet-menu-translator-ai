@@ -17,8 +17,8 @@ const UserMenu = () => {
         {user && (
           <div className="mb-6">
             <p className="text-gray-600">
-              Bem-vindo(a) ao seu painel de controle. Aqui você pode gerenciar seus cardápios, ver suas traduções e 
-              acompanhar seus créditos.
+              Bem-vindo(a) ao seu painel de controle. Aqui você pode gerenciar seus cardápios, ver suas traduções, 
+              acompanhar seus créditos e escolher um plano que melhor se adapta ao seu negócio.
             </p>
           </div>
         )}
