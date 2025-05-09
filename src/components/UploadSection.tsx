@@ -41,6 +41,9 @@ const UploadSection = () => {
         title: "Tradução concluída",
         description: `Seu cardápio foi traduzido para ${toLanguages.length} idioma${toLanguages.length > 1 ? 's' : ''} com sucesso!`,
       });
+      
+      // The translation history and credit consumption is now handled automatically
+      // by the translate-menu edge function when it's called by translateText()
     } catch (error) {
       console.error('Translation error:', error);
     } finally {

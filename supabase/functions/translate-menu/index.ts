@@ -176,7 +176,7 @@ serve(async (req) => {
         .from('translations')
         .insert({
           user_id: user.id,
-          menu_id: menuId || "00000000-0000-0000-0000-000000000000",
+          menu_id: menuId || null,
           original_language: fromLanguage,
           target_language: targetLang,
           original_content: text,
