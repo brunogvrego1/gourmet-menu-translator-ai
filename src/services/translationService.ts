@@ -5,12 +5,17 @@ import { toast } from 'sonner';
 export async function translateText(
   text: string, 
   fromLanguage: string, 
-  toLanguage: string,
+  toLanguages: string[],
   menuId?: string
-): Promise<string> {
+): Promise<Record<string, string>> {
   if (!text.trim()) {
     toast.error('Por favor, carregue ou digite o texto do cardápio primeiro.');
-    return '';
+    return {};
+  }
+
+  if (!toLanguages.length) {
+    toast.error('Por favor, selecione pelo menos um idioma para tradução.');
+    return {};
   }
 
   try {
@@ -27,7 +32,7 @@ export async function translateText(
       body: {
         text: text,
         fromLanguage: fromLanguage === 'auto' ? 'Unknown' : fromLanguage,
-        toLanguage: toLanguage,
+        toLanguages: toLanguages,
         menuId: menuId
       }
     });
@@ -39,7 +44,7 @@ export async function translateText(
       throw error;
     }
 
-    return data.translatedText;
+    return data.translations;
   } catch (error) {
     console.error('Translation error:', error);
     toast.error('Erro ao traduzir. Tente novamente.');

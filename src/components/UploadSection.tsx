@@ -12,23 +12,34 @@ import { toast } from 'sonner';
 const UploadSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [menuText, setMenuText] = useState('');
-  const [translatedText, setTranslatedText] = useState('');
+  const [translatedTexts, setTranslatedTexts] = useState<Record<string, string>>({});
   const [fromLanguage, setFromLanguage] = useState('auto');
-  const [toLanguage, setToLanguage] = useState('pt');
+  const [toLanguages, setToLanguages] = useState<string[]>(['pt']);
+  const [selectedLanguage, setSelectedLanguage] = useState('pt');
   const [menuName, setMenuName] = useState('');
   const { toast: shadcnToast } = useToast();
   const { user } = useAuth();
 
   const handleTranslate = async () => {
     if (!menuText.trim()) return;
+    if (!toLanguages.length) {
+      toast.error("Por favor, selecione ao menos um idioma para tradução");
+      return;
+    }
 
     setIsLoading(true);
     try {
-      const result = await translateText(menuText, fromLanguage, toLanguage);
-      setTranslatedText(result);
+      const results = await translateText(menuText, fromLanguage, toLanguages);
+      setTranslatedTexts(results);
+      
+      // Set the first translated language as the selected one
+      if (Object.keys(results).length > 0) {
+        setSelectedLanguage(Object.keys(results)[0]);
+      }
+      
       shadcnToast({
         title: "Tradução concluída",
-        description: "Seu cardápio foi traduzido com sucesso!",
+        description: `Seu cardápio foi traduzido para ${toLanguages.length} idioma${toLanguages.length > 1 ? 's' : ''} com sucesso!`,
       });
     } catch (error) {
       console.error('Translation error:', error);
@@ -48,7 +59,7 @@ const UploadSection = () => {
       return;
     }
 
-    if (!translatedText) {
+    if (Object.keys(translatedTexts).length === 0) {
       toast.error('Traduza o cardápio antes de salvar');
       return;
     }
@@ -56,12 +67,15 @@ const UploadSection = () => {
     try {
       setIsLoading(true);
       
+      // Save menu for the selected language translation
+      const translatedContent = translatedTexts[selectedLanguage];
+      
       // Save menu
       const { data: menu, error: menuError } = await supabase
         .from('menus')
         .insert({
           name: menuName,
-          content: translatedText,
+          content: translatedContent,
           user_id: user.id
         })
         .select()
@@ -69,27 +83,32 @@ const UploadSection = () => {
         
       if (menuError) throw menuError;
 
-      // Save translation record
-      const { error: translationError } = await supabase
-        .from('translations')
-        .insert({
-          menu_id: menu.id,
-          user_id: user.id,
-          original_language: fromLanguage,
-          target_language: toLanguage,
-          original_content: menuText,
-          translated_content: translatedText,
-          status: 'completed'
-        });
-        
-      if (translationError) throw translationError;
+      // Save translation records for all translations
+      for (const [lang, content] of Object.entries(translatedTexts)) {
+        const { error: translationError } = await supabase
+          .from('translations')
+          .insert({
+            menu_id: menu.id,
+            user_id: user.id,
+            original_language: fromLanguage,
+            target_language: lang,
+            original_content: menuText,
+            translated_content: content,
+            status: 'completed'
+          });
+          
+        if (translationError) {
+          console.error(`Error saving translation for ${lang}:`, translationError);
+          // Continue with other languages even if one fails
+        }
+      }
       
       toast.success('Cardápio salvo com sucesso!');
       
       // Reset form
       setMenuName('');
       setMenuText('');
-      setTranslatedText('');
+      setTranslatedTexts({});
       
     } catch (error: any) {
       console.error('Error saving menu:', error);
@@ -120,7 +139,7 @@ const UploadSection = () => {
           <FileUploader onFileProcessed={handleFileProcessed} />
         ) : (
           <>
-            {translatedText && (
+            {Object.keys(translatedTexts).length > 0 && (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nome do cardápio
@@ -137,30 +156,31 @@ const UploadSection = () => {
             
             <TextEditor 
               originalText={menuText}
-              translatedText={translatedText}
+              translatedTexts={translatedTexts}
               fromLanguage={fromLanguage}
-              toLanguage={toLanguage}
+              toLanguages={toLanguages}
+              selectedLanguage={selectedLanguage}
               onOriginalTextChange={setMenuText}
-              onTranslatedTextChange={setTranslatedText}
               onFromLanguageChange={setFromLanguage}
-              onToLanguageChange={setToLanguage}
+              onToLanguagesChange={setToLanguages}
+              onSelectedLanguageChange={setSelectedLanguage}
             />
           </>
         )}
         
         <div className="mt-8 flex flex-col space-y-4">
-          {menuText && !translatedText && (
+          {menuText && Object.keys(translatedTexts).length === 0 && (
             <Button 
               size="lg" 
               className="w-full max-w-xs mx-auto mt-6 bg-gourmet-purple hover:bg-gourmet-dark-purple"
-              disabled={isLoading}
+              disabled={isLoading || toLanguages.length === 0}
               onClick={handleTranslate}
             >
               {isLoading ? 'Traduzindo...' : 'Traduzir agora'}
             </Button>
           )}
           
-          {translatedText && user && (
+          {Object.keys(translatedTexts).length > 0 && user && (
             <Button 
               size="lg" 
               className="w-full max-w-xs mx-auto bg-gourmet-purple hover:bg-gourmet-dark-purple"
@@ -177,7 +197,7 @@ const UploadSection = () => {
               className="w-full max-w-xs mx-auto"
               onClick={() => {
                 setMenuText('');
-                setTranslatedText('');
+                setTranslatedTexts({});
                 setMenuName('');
               }}
             >

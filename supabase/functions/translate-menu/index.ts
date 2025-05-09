@@ -22,7 +22,7 @@ serve(async (req) => {
     );
 
     // Parse request body
-    const { text, fromLanguage, toLanguage } = await req.json();
+    const { text, fromLanguage, toLanguages, menuId } = await req.json();
 
     // Get user session from request
     const authHeader = req.headers.get("Authorization");
@@ -57,23 +57,30 @@ serve(async (req) => {
       });
     }
 
+    // Each language counts as 1 credit
+    const requiredCredits = toLanguages.length;
     const availableCredits = credits.total_credits - credits.used_credits;
-    if (availableCredits <= 0) {
+    
+    if (availableCredits < requiredCredits) {
       return new Response(JSON.stringify({ error: "Not enough credits" }), {
         status: 402,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // This would be where you call an actual translation API
-    // For now, we'll simulate translation by appending "[Translated]" to the text
-    const translatedText = `${text} [Traduzido de ${fromLanguage} para ${toLanguage}]`;
+    // Generate translations for each language
+    const translations: Record<string, string> = {};
     
-    // Update user's credits (increment used_credits)
+    for (const targetLang of toLanguages) {
+      // This would be where you call an actual translation API for each language
+      translations[targetLang] = `${text} [Traduzido de ${fromLanguage} para ${targetLang}]`;
+    }
+    
+    // Update user's credits (increment used_credits by the number of translations)
     const { error: updateError } = await supabaseClient
       .from('credits')
       .update({ 
-        used_credits: credits.used_credits + 1,
+        used_credits: credits.used_credits + requiredCredits,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', user.id);
@@ -85,28 +92,28 @@ serve(async (req) => {
       });
     }
 
-    // Record the translation in the translations table
-    const { error: translationError } = await supabaseClient
-      .from('translations')
-      .insert({
-        user_id: user.id,
-        // Since we're not connected to a menu in this example, we would need to create a menu entry
-        // or have a menu_id passed in the request. For this example, let's create a temporary menu.
-        menu_id: "00000000-0000-0000-0000-000000000000", // Would be a real menu_id in production
-        original_language: fromLanguage,
-        target_language: toLanguage,
-        original_content: text,
-        translated_content: translatedText,
-        status: 'completed'
-      });
+    // Record the translations in the translations table (one entry per language)
+    for (const targetLang of toLanguages) {
+      const { error: translationError } = await supabaseClient
+        .from('translations')
+        .insert({
+          user_id: user.id,
+          menu_id: menuId || "00000000-0000-0000-0000-000000000000", // Would be a real menu_id in production
+          original_language: fromLanguage,
+          target_language: targetLang,
+          original_content: text,
+          translated_content: translations[targetLang],
+          status: 'completed'
+        });
 
-    if (translationError) {
-      console.error("Error recording translation:", translationError);
-      // We'll continue even if this fails - the user still gets their translation
+      if (translationError) {
+        console.error(`Error recording translation for ${targetLang}:`, translationError);
+        // We'll continue even if this fails - the user still gets their translation
+      }
     }
 
-    // Return the translated text
-    return new Response(JSON.stringify({ translatedText }), {
+    // Return the translated texts
+    return new Response(JSON.stringify({ translations }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
