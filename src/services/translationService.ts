@@ -38,10 +38,22 @@ export async function translateText(
     });
 
     if (error) {
+      console.error('Translation function error:', error);
+      
       if (error.message.includes('Not enough credits')) {
         toast.error('Você não tem créditos suficientes para fazer esta tradução');
+      } else if (error.message.includes('Not authenticated')) {
+        toast.error('Você precisa estar logado para traduzir cardápios');
+      } else {
+        toast.error(`Erro ao traduzir: ${error.message}`);
       }
+      
       throw error;
+    }
+
+    if (!data || !data.translations) {
+      toast.error('Resposta de tradução inválida');
+      throw new Error('Invalid translation response');
     }
 
     return data.translations;

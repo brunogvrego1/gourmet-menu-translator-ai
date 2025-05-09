@@ -18,7 +18,13 @@ serve(async (req) => {
     // Create Supabase client with Supabase credentials
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") || "",
-      Deno.env.get("SUPABASE_ANON_KEY") || ""
+      Deno.env.get("SUPABASE_ANON_KEY") || "",
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
     );
 
     // Parse request body
@@ -37,11 +43,13 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Authentication failed" }), {
+      return new Response(JSON.stringify({ error: "Authentication failed", details: authError }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log("Authenticated user:", user.id);
 
     // Check if the user has enough credits
     const { data: credits, error: creditsError } = await supabaseClient
@@ -51,21 +59,62 @@ serve(async (req) => {
       .single();
 
     if (creditsError) {
-      return new Response(JSON.stringify({ error: "Error checking credits" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Each language counts as 1 credit
-    const requiredCredits = toLanguages.length;
-    const availableCredits = credits.total_credits - credits.used_credits;
-    
-    if (availableCredits < requiredCredits) {
-      return new Response(JSON.stringify({ error: "Not enough credits" }), {
-        status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      console.error("Error checking credits:", creditsError);
+      
+      // If the credits record doesn't exist, create one with default values
+      if (creditsError.code === 'PGRST116') {
+        console.log("Creating credits record for user:", user.id);
+        const { data: newCredits, error: insertError } = await supabaseClient
+          .from('credits')
+          .insert({ 
+            user_id: user.id,
+            total_credits: 10,
+            used_credits: 0,
+            tier: 'free'
+          })
+          .select()
+          .single();
+          
+        if (insertError) {
+          console.error("Failed to create credits record:", insertError);
+          return new Response(JSON.stringify({ error: "Error creating credits record", details: insertError }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        
+        // Use the newly created credits record
+        if (newCredits) {
+          console.log("Using newly created credits:", newCredits);
+          // Each language counts as 1 credit
+          const requiredCredits = toLanguages.length;
+          const availableCredits = newCredits.total_credits - newCredits.used_credits;
+          
+          if (availableCredits < requiredCredits) {
+            return new Response(JSON.stringify({ error: "Not enough credits" }), {
+              status: 402,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
+      } else {
+        return new Response(JSON.stringify({ error: "Error checking credits", details: creditsError }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      console.log("User credits:", credits);
+      // Each language counts as 1 credit
+      const requiredCredits = toLanguages.length;
+      const availableCredits = credits.total_credits - credits.used_credits;
+      
+      if (availableCredits < requiredCredits) {
+        return new Response(JSON.stringify({ error: "Not enough credits" }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Generate translations for each language
@@ -77,19 +126,26 @@ serve(async (req) => {
     }
     
     // Update user's credits (increment used_credits by the number of translations)
-    const { error: updateError } = await supabaseClient
-      .from('credits')
-      .update({ 
-        used_credits: credits.used_credits + requiredCredits,
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id);
+    const updateResult = await supabaseClient.rpc('increment_used_credits', {
+      user_id_param: user.id,
+      credits_to_add: toLanguages.length
+    });
 
-    if (updateError) {
-      return new Response(JSON.stringify({ error: "Error updating credits" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (updateResult.error) {
+      console.error("Error updating credits via RPC:", updateResult.error);
+      // Fallback to direct update if RPC fails
+      const { error: updateError } = await supabaseClient
+        .from('credits')
+        .update({ 
+          used_credits: supabaseClient.rpc('get_current_credits', { user_id_param: user.id }) + toLanguages.length,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        console.error("Error updating credits:", updateError);
+        // Continue anyway - user still gets the translation
+      }
     }
 
     // Record the translations in the translations table (one entry per language)
@@ -121,7 +177,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error processing translation:", error);
     
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+    return new Response(JSON.stringify({ error: "Internal Server Error", details: String(error) }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
