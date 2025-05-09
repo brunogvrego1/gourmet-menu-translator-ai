@@ -4,8 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { CreditCard, BarChart2 } from 'lucide-react';
+import { CreditCard, BarChart2, Loader2 } from 'lucide-react';
 import ExtraCreditsPurchase from './ExtraCreditsPurchase';
+import { useLocation } from 'react-router-dom';
 
 interface UserCreditInfo {
   id: string;
@@ -18,14 +19,59 @@ interface UserCreditInfo {
 
 const UserCredits = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [creditInfo, setCreditInfo] = useState<UserCreditInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
 
   useEffect(() => {
     if (user) {
       fetchCreditInfo();
     }
   }, [user]);
+
+  // Verify payment if session_id is in the URL
+  useEffect(() => {
+    const checkPaymentStatus = async () => {
+      const searchParams = new URLSearchParams(location.search);
+      const paymentStatus = searchParams.get('payment');
+      const sessionId = searchParams.get('session_id');
+      
+      if (paymentStatus === 'success' && sessionId && user) {
+        await verifyPayment(sessionId);
+      }
+    };
+
+    checkPaymentStatus();
+  }, [location, user]);
+
+  const verifyPayment = async (sessionId: string) => {
+    try {
+      setVerifyingPayment(true);
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: { sessionId }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data.success) {
+        // Refresh credit info after successful payment
+        fetchCreditInfo();
+        toast.success(data.message);
+      } else if (data.status === 'already_processed') {
+        toast.info(data.message);
+      } else {
+        toast.warning(data.message || "Pagamento pendente ou não completado");
+      }
+    } catch (error: any) {
+      console.error('Error verifying payment:', error);
+      toast.error(`Erro ao verificar pagamento: ${error.message}`);
+    } finally {
+      setVerifyingPayment(false);
+    }
+  };
 
   const fetchCreditInfo = async () => {
     try {
@@ -96,6 +142,14 @@ const UserCredits = () => {
     return Math.min(100, Math.max(0, percentage));
   };
 
+  const handleBuyCreditsClick = () => {
+    // Scroll to the ExtraCreditsPurchase component
+    const purchaseElement = document.getElementById('extra-credits-purchase');
+    if (purchaseElement) {
+      purchaseElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div>
       <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
@@ -137,9 +191,19 @@ const UserCredits = () => {
             </div>
 
             <div className="mt-6 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-              <Button className="bg-gourmet-purple space-x-2">
-                <CreditCard className="h-4 w-4" />
-                <span>Comprar mais créditos</span>
+              <Button 
+                className="bg-gourmet-purple space-x-2"
+                onClick={handleBuyCreditsClick}
+                disabled={verifyingPayment}
+              >
+                {verifyingPayment ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CreditCard className="h-4 w-4" />
+                )}
+                <span>
+                  {verifyingPayment ? 'Verificando pagamento...' : 'Comprar mais créditos'}
+                </span>
               </Button>
               
               <Button variant="outline" className="space-x-2">
@@ -158,9 +222,11 @@ const UserCredits = () => {
         )}
       </div>
       
-      {/* Add the ExtraCreditsPurchase component */}
+      {/* Add the ExtraCreditsPurchase component with ID for scrolling */}
       {creditInfo && creditInfo.tier !== 'free' && (
-        <ExtraCreditsPurchase />
+        <div id="extra-credits-purchase">
+          <ExtraCreditsPurchase />
+        </div>
       )}
     </div>
   );

@@ -1,10 +1,10 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Check } from 'lucide-react';
+import { Check, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 type PlanFeature = {
   text: string;
@@ -25,6 +25,7 @@ type Plan = {
 const PlansTab = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   
   const plans: Plan[] = [
     {
@@ -100,8 +101,15 @@ const PlansTab = () => {
     }
   ];
 
-  const handleSelectPlan = (plan: Plan) => {
-    // In a real implementation, this would redirect to a payment page or checkout flow
+  const getPlanPrice = (plan: Plan): number => {
+    // If the plan is free, return 0
+    if (plan.id === 'free') return 0;
+    
+    // Otherwise, parse the price from the price string (removing "R$ " and converting to number)
+    return parseFloat(plan.price.replace('R$ ', '').replace(',', '.'));
+  };
+
+  const handleSelectPlan = async (plan: Plan) => {
     if (plan.id === 'free') {
       toast({
         title: "Plano Atual",
@@ -110,10 +118,38 @@ const PlansTab = () => {
       return;
     }
     
-    toast({
-      title: "Plano selecionado",
-      description: `Você selecionou o plano ${plan.title}. Em breve implementaremos a funcionalidade de pagamento.`,
-    });
+    try {
+      setLoadingPlan(plan.id);
+      
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          credits: plan.creditsAmount,
+          price: getPlanPrice(plan) * 100, // Convert to cents for Stripe
+          userId: user?.id,
+          productName: `Plano ${plan.title}`,
+          planId: plan.id
+        }
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      if (data?.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error("Não foi possível iniciar o checkout");
+      }
+    } catch (error: any) {
+      console.error("Error creating checkout session:", error);
+      toast({
+        title: "Erro no checkout",
+        description: error.message || "Não foi possível iniciar o processo de pagamento",
+      });
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
   return (
@@ -174,9 +210,16 @@ const PlansTab = () => {
                     : plan.id === 'free' ? 'bg-gray-100 text-gray-500 cursor-not-allowed hover:bg-gray-100' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
                 onClick={() => handleSelectPlan(plan)}
-                disabled={plan.id === 'free'}
+                disabled={plan.id === 'free' || loadingPlan !== null}
               >
-                {plan.id === 'free' ? 'Plano atual' : plan.buttonText}
+                {loadingPlan === plan.id ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Processando...</span>
+                  </div>
+                ) : (
+                  plan.id === 'free' ? 'Plano atual' : plan.buttonText
+                )}
               </Button>
             </CardFooter>
           </Card>
