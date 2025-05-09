@@ -79,14 +79,17 @@ const FileUploader = ({ onFileProcessed }: FileUploaderProps) => {
 
   const extractTextFromImage = async (file: File) => {
     try {
-      const worker = await createWorker('por+eng');
-      
-      // Set up progress updates
-      worker.setProgressHandler((progress) => {
-        setProgress(Math.round(progress.progress * 100));
-        setProcessingStage(progress.status);
+      const worker = await createWorker({
+        logger: progress => {
+          setProgress(Math.round(progress.progress * 100));
+          setProcessingStage(progress.status);
+        }
       });
-
+      
+      // Load language data - both Portuguese and English
+      await worker.loadLanguage('por+eng');
+      await worker.initialize('por+eng');
+      
       // Convert the file to a format Tesseract can use
       const imageUrl = URL.createObjectURL(file);
       
