@@ -42,62 +42,83 @@ serve(async (req) => {
       throw new Error('Parâmetros inválidos');
     }
     
-    // Initialize Stripe
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
-    });
+    // Check if STRIPE_SECRET_KEY is available
+    const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeSecretKey) {
+      throw new Error('Chave Stripe não configurada. Entre em contato com o administrador');
+    }
+    
+    // Initialize Stripe with more detailed error handling
+    let stripe;
+    try {
+      stripe = new Stripe(stripeSecretKey, {
+        apiVersion: "2023-10-16",
+      });
+    } catch (stripeInitError) {
+      console.error("Error initializing Stripe:", stripeInitError);
+      throw new Error('Erro ao inicializar Stripe. Verifique a configuração');
+    }
     
     // Create a new checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "brl",
-            product_data: {
-              name: productName,
+    try {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: "brl",
+              product_data: {
+                name: productName,
+              },
+              unit_amount: Math.round(price),
             },
-            unit_amount: Math.round(price),
+            quantity: 1,
           },
-          quantity: 1,
+        ],
+        mode: "payment",
+        success_url: `${req.headers.get("origin")}/seu-cardapio?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.get("origin")}/seu-cardapio?payment=canceled`,
+        metadata: {
+          userId: userId,
+          credits: credits.toString(),
         },
-      ],
-      mode: "payment",
-      success_url: `${req.headers.get("origin")}/seu-cardapio?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/seu-cardapio?payment=canceled`,
-      metadata: {
-        userId: userId,
-        credits: credits.toString(),
-      },
-    });
-
-    // Store the payment intent in the database for later verification
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
-    );
-
-    const { error: insertError } = await supabaseAdmin
-      .from("payment_intents")
-      .insert({
-        user_id: userId,
-        stripe_session_id: session.id,
-        amount: price / 100, // Store in actual currency amount
-        credits: credits,
-        status: "pending",
       });
 
-    if (insertError) {
-      console.error("Error storing payment intent:", insertError);
-      // Continue even if there's an error storing the intent, as we can verify it later
-    }
+      // Store the payment intent in the database for later verification
+      const supabaseAdmin = createClient(
+        Deno.env.get("SUPABASE_URL") ?? "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        { auth: { persistSession: false } }
+      );
 
-    // Return the session URL for redirection
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+      const { error: insertError } = await supabaseAdmin
+        .from("payment_intents")
+        .insert({
+          user_id: userId,
+          stripe_session_id: session.id,
+          amount: price / 100, // Store in actual currency amount
+          credits: credits,
+          status: "pending",
+        });
+
+      if (insertError) {
+        console.error("Error storing payment intent:", insertError);
+        // Continue even if there's an error storing the intent, as we can verify it later
+      }
+
+      // Return the session URL for redirection
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    } catch (stripeError) {
+      console.error("Stripe checkout creation error:", stripeError);
+      if (stripeError.type === 'StripeAuthenticationError') {
+        throw new Error('Erro de autenticação Stripe: chave secreta inválida');
+      } else {
+        throw new Error(`Erro ao criar checkout: ${stripeError.message}`);
+      }
+    }
   } catch (error) {
     console.error("Error in create-payment function:", error);
     
