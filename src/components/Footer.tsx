@@ -43,7 +43,6 @@ const Footer = () => {
               <li><Link to="/" className="text-gray-300 hover:text-white transition-colors">Início</Link></li>
               <li><Link to="/precos" className="text-gray-300 hover:text-white transition-colors">Preços</Link></li>
               <li><Link to="/contato" className="text-gray-300 hover:text-white transition-colors">Contato</Link></li>
-              <li><Link to="/" className="text-gray-300 hover:text-white transition-colors">FAQ</Link></li>
             </ul>
           </div>
           
@@ -51,7 +50,6 @@ const Footer = () => {
             <h3 className="text-lg font-medium mb-4">Contato</h3>
             <ul className="space-y-2">
               <li className="text-gray-300">contato@tradutorgourmet.com</li>
-              <li className="text-gray-300">+55 (11) 9999-9999</li>
               <li className="text-gray-300">São Paulo, Brasil</li>
             </ul>
           </div>
