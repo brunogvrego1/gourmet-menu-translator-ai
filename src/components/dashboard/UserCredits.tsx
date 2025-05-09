@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { CreditCard, BarChart2 } from 'lucide-react';
+import ExtraCreditsPurchase from './ExtraCreditsPurchase';
 
 interface UserCreditInfo {
   id: string;
@@ -96,63 +97,70 @@ const UserCredits = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
-      <h2 className="text-xl font-semibold mb-4">Seus créditos</h2>
+    <div>
+      <div className="bg-white p-6 rounded-lg shadow-md space-y-6">
+        <h2 className="text-xl font-semibold mb-4">Seus créditos</h2>
+        
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <div className="h-6 w-6 animate-spin rounded-full border-4 border-gourmet-purple border-t-transparent"></div>
+          </div>
+        ) : creditInfo ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg flex flex-col items-center">
+                <div className="text-gourmet-purple font-bold text-3xl mb-2">{getAvailableCredits()}</div>
+                <div className="text-gray-600">Créditos disponíveis</div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg flex flex-col items-center">
+                <div className="text-gourmet-purple font-bold text-3xl mb-2">{creditInfo.used_credits}</div>
+                <div className="text-gray-600">Créditos utilizados</div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg flex flex-col items-center">
+                <div className="text-gourmet-purple font-bold text-3xl mb-2">{formatTier(creditInfo.tier)}</div>
+                <div className="text-gray-600">Seu plano atual</div>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <div className="text-sm font-medium text-gray-700 mb-1">
+                Uso de créditos: {creditInfo.used_credits} de {creditInfo.total_credits}
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div 
+                  className="bg-gourmet-purple h-2.5 rounded-full" 
+                  style={{ width: `${getUsagePercentage()}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+              <Button className="bg-gourmet-purple space-x-2">
+                <CreditCard className="h-4 w-4" />
+                <span>Comprar mais créditos</span>
+              </Button>
+              
+              <Button variant="outline" className="space-x-2">
+                <BarChart2 className="h-4 w-4" />
+                <span>Ver histórico de uso</span>
+              </Button>
+            </div>
+
+            <div className="mt-4 text-sm text-gray-500">
+              <p>Conta criada em: {new Date(creditInfo.created_at).toLocaleDateString('pt-BR')}</p>
+              <p>Última atualização: {new Date(creditInfo.updated_at).toLocaleDateString('pt-BR')}</p>
+            </div>
+          </>
+        ) : (
+          <p className="text-gray-500 py-4">Erro ao carregar informações de créditos.</p>
+        )}
+      </div>
       
-      {loading ? (
-        <div className="flex justify-center py-8">
-          <div className="h-6 w-6 animate-spin rounded-full border-4 border-gourmet-purple border-t-transparent"></div>
-        </div>
-      ) : creditInfo ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gray-50 p-4 rounded-lg flex flex-col items-center">
-              <div className="text-gourmet-purple font-bold text-3xl mb-2">{getAvailableCredits()}</div>
-              <div className="text-gray-600">Créditos disponíveis</div>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg flex flex-col items-center">
-              <div className="text-gourmet-purple font-bold text-3xl mb-2">{creditInfo.used_credits}</div>
-              <div className="text-gray-600">Créditos utilizados</div>
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg flex flex-col items-center">
-              <div className="text-gourmet-purple font-bold text-3xl mb-2">{formatTier(creditInfo.tier)}</div>
-              <div className="text-gray-600">Seu plano atual</div>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <div className="text-sm font-medium text-gray-700 mb-1">
-              Uso de créditos: {creditInfo.used_credits} de {creditInfo.total_credits}
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div 
-                className="bg-gourmet-purple h-2.5 rounded-full" 
-                style={{ width: `${getUsagePercentage()}%` }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
-            <Button className="bg-gourmet-purple space-x-2">
-              <CreditCard className="h-4 w-4" />
-              <span>Comprar mais créditos</span>
-            </Button>
-            
-            <Button variant="outline" className="space-x-2">
-              <BarChart2 className="h-4 w-4" />
-              <span>Ver histórico de uso</span>
-            </Button>
-          </div>
-
-          <div className="mt-4 text-sm text-gray-500">
-            <p>Conta criada em: {new Date(creditInfo.created_at).toLocaleDateString('pt-BR')}</p>
-            <p>Última atualização: {new Date(creditInfo.updated_at).toLocaleDateString('pt-BR')}</p>
-          </div>
-        </>
-      ) : (
-        <p className="text-gray-500 py-4">Erro ao carregar informações de créditos.</p>
+      {/* Add the ExtraCreditsPurchase component */}
+      {creditInfo && creditInfo.tier !== 'free' && (
+        <ExtraCreditsPurchase />
       )}
     </div>
   );
