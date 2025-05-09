@@ -130,13 +130,13 @@ const UploadSection = () => {
             Traduza seu cardápio agora
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Carregue uma imagem ou PDF do cardápio que deseja traduzir. 
+            Carregue uma ou várias imagens, fotos ou PDFs dos cardápios que deseja traduzir. 
             Nosso sistema com OCR (Reconhecimento Óptico de Caracteres) extrairá o texto automaticamente.
           </p>
         </div>
         
         {!menuText ? (
-          <FileUploader onFileProcessed={handleFileProcessed} />
+          <FileUploader onFileProcessed={handleFileProcessed} multiple={true} />
         ) : (
           <>
             {Object.keys(translatedTexts).length > 0 && (
