@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -90,8 +91,8 @@ const PlansTab = () => {
       features: [
         { text: 'Tradução para até 5 idiomas' },
         { text: 'Páginas ilimitadas por cardápio' },
-        { text: 'Formato personalizado com sua identidade visual' },
-        { text: 'Adaptação cultural premium com consultoria' },
+        { text: 'Formato personalizado com o estilo de escrita da sua marca' }, // Updated this line
+        { text: 'Adaptação cultural premium' }, // Updated this line
         { text: 'Créditos para múltiplos cardápios' },
         { text: 'Suporte dedicado 24/7 com gerente de conta' }
       ],

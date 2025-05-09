@@ -156,8 +156,8 @@ const Pricing = () => {
       features: [
         'Tradução para até 5 idiomas',
         'Páginas ilimitadas por cardápio',
-        'Formato personalizado com sua identidade visual',
-        'Adaptação cultural premium com consultoria',
+        'Formato personalizado com o estilo de escrita da sua marca', // Updated this line
+        'Adaptação cultural premium', // Updated this line
         'Créditos para múltiplos cardápios',
         'Suporte dedicado 24/7 com gerente de conta'
       ],
