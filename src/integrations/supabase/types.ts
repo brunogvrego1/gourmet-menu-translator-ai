@@ -9,6 +9,63 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      credits: {
+        Row: {
+          created_at: string
+          id: string
+          tier: string
+          total_credits: number
+          updated_at: string
+          used_credits: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tier?: string
+          total_credits?: number
+          updated_at?: string
+          used_credits?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tier?: string
+          total_credits?: number
+          updated_at?: string
+          used_credits?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      menus: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -32,6 +89,53 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      translations: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          menu_id: string
+          original_content: string
+          original_language: string
+          status: string
+          target_language: string
+          translated_content: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          menu_id: string
+          original_content: string
+          original_language: string
+          status?: string
+          target_language: string
+          translated_content: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          menu_id?: string
+          original_content?: string
+          original_language?: string
+          status?: string
+          target_language?: string
+          translated_content?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "translations_menu_id_fkey"
+            columns: ["menu_id"]
+            isOneToOne: false
+            referencedRelation: "menus"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
