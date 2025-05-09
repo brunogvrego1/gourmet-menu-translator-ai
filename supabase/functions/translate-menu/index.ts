@@ -15,7 +15,20 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase client with Supabase credentials
+    // Create Supabase client with Supabase credentials using service role key
+    // This allows bypassing RLS policies for admin operations
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") || "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    // Create a regular client for user authentication checks
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") || "",
       Deno.env.get("SUPABASE_ANON_KEY") || "",
@@ -51,20 +64,21 @@ serve(async (req) => {
 
     console.log("Authenticated user:", user.id);
 
-    // Check if the user has enough credits
-    const { data: credits, error: creditsError } = await supabaseClient
+    // Check if the user has credits record
+    const { data: credits, error: creditsError } = await supabaseAdmin
       .from('credits')
       .select('total_credits, used_credits')
       .eq('user_id', user.id)
       .single();
 
+    // Handle credits management
     if (creditsError) {
-      console.error("Error checking credits:", creditsError);
+      console.log("Error checking credits:", creditsError.message);
       
       // If the credits record doesn't exist, create one with default values
       if (creditsError.code === 'PGRST116') {
         console.log("Creating credits record for user:", user.id);
-        const { data: newCredits, error: insertError } = await supabaseClient
+        const { data: newCredits, error: insertError } = await supabaseAdmin
           .from('credits')
           .insert({ 
             user_id: user.id,
@@ -77,7 +91,7 @@ serve(async (req) => {
           
         if (insertError) {
           console.error("Failed to create credits record:", insertError);
-          return new Response(JSON.stringify({ error: "Error creating credits record", details: insertError }), {
+          return new Response(JSON.stringify({ error: "Error setting up user credits" }), {
             status: 500,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -98,7 +112,7 @@ serve(async (req) => {
           }
         }
       } else {
-        return new Response(JSON.stringify({ error: "Error checking credits", details: creditsError }), {
+        return new Response(JSON.stringify({ error: "Error checking credits" }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -125,32 +139,23 @@ serve(async (req) => {
       translations[targetLang] = `${text} [Traduzido de ${fromLanguage} para ${targetLang}]`;
     }
     
-    // Update user's credits (increment used_credits by the number of translations)
-    const updateResult = await supabaseClient.rpc('increment_used_credits', {
-      user_id_param: user.id,
-      credits_to_add: toLanguages.length
-    });
+    // Update user's credits using the admin client (bypassing RLS)
+    const { error: updateError } = await supabaseAdmin
+      .from('credits')
+      .update({
+        used_credits: supabaseAdmin.rpc('get_current_credits', { user_id_param: user.id }) + toLanguages.length,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user.id);
 
-    if (updateResult.error) {
-      console.error("Error updating credits via RPC:", updateResult.error);
-      // Fallback to direct update if RPC fails
-      const { error: updateError } = await supabaseClient
-        .from('credits')
-        .update({ 
-          used_credits: supabaseClient.rpc('get_current_credits', { user_id_param: user.id }) + toLanguages.length,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (updateError) {
-        console.error("Error updating credits:", updateError);
-        // Continue anyway - user still gets the translation
-      }
+    if (updateError) {
+      console.error("Error updating credits:", updateError);
+      // Continue anyway - user still gets the translation
     }
 
     // Record the translations in the translations table (one entry per language)
     for (const targetLang of toLanguages) {
-      const { error: translationError } = await supabaseClient
+      const { error: translationError } = await supabaseAdmin
         .from('translations')
         .insert({
           user_id: user.id,
