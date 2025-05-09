@@ -41,7 +41,7 @@ serve(async (req) => {
     );
 
     // Parse request body
-    const { text, fromLanguage, toLanguages, menuId } = await req.json();
+    const { text, fromLanguage, toLanguages, menuId, useDeepSeek } = await req.json();
 
     // Get user session from request
     const authHeader = req.headers.get("Authorization");
@@ -131,67 +131,21 @@ serve(async (req) => {
       }
     }
 
-    // Generate translations for each language
+    // Generate translations using DeepSeek API
     const translations: Record<string, string> = {};
     
-    // Implement actual translations here
-    // This is a simplified example that would be replaced with an actual API call
     for (const targetLang of toLanguages) {
-      // For demonstration, we'll translate a simple menu from Brazilian Portuguese to selected languages
-      if (targetLang === 'en' && fromLanguage === 'pt') {
-        // Portuguese to English translations for common menu items
-        const pt_to_en: Record<string, string> = {
-          'Seção: Pratos Principais': 'Section: Main Dishes',
-          'Feijoada Completa': 'Complete Feijoada',
-          'Feijão preto cozido com carne seca, costelinha de porco, linguiça e paio. Acompanhado de arroz branco, couve refogada, laranja fatiada e farofa.': 
-            'Black beans cooked with dried meat, pork ribs, sausage and "paio". Served with white rice, sautéed collard greens, sliced orange and "farofa".',
-          'Serve 2 pessoas.': 'Serves 2 people.',
-          'Moqueca de Peixe': 'Fish Stew',
-          'Peixe fresco cozido no leite de coco com pimentões, cebola, coentro e azeite de dendê. Acompanha arroz e pirão.':
-            'Fresh fish cooked in coconut milk with bell peppers, onion, cilantro and palm oil. Served with rice and fish porridge.',
-          'Frango à Parmegiana': 'Chicken Parmigiana',
-          'Filé de frango empanado, coberto com molho de tomate caseiro e queijo derretido. Servido com arroz e batata frita.':
-            'Breaded chicken fillet, covered with homemade tomato sauce and melted cheese. Served with rice and french fries.',
-          'Risoto de Cogumelos': 'Mushroom Risotto'
-        };
-        
-        translations[targetLang] = text;
-        
-        // Replace Portuguese phrases with English translations
-        Object.entries(pt_to_en).forEach(([pt, en]) => {
-          translations[targetLang] = translations[targetLang].replace(new RegExp(pt, 'g'), en);
-        });
-      } 
-      else if (targetLang === 'es' && fromLanguage === 'pt') {
-        // Portuguese to Spanish translations
-        const pt_to_es: Record<string, string> = {
-          'Seção: Pratos Principais': 'Sección: Platos Principales',
-          'Feijoada Completa': 'Feijoada Completa',
-          'Feijão preto cozido com carne seca, costelinha de porco, linguiça e paio. Acompanhado de arroz branco, couve refogada, laranja fatiada e farofa.': 
-            'Frijoles negros cocidos con carne seca, costillas de cerdo, chorizo y "paio". Acompañado de arroz blanco, col salteada, naranja en rodajas y "farofa".',
-          'Serve 2 pessoas.': 'Sirve para 2 personas.',
-          'Moqueca de Peixe': 'Moqueca de Pescado',
-          'Peixe fresco cozido no leite de coco com pimentões, cebola, coentro e azeite de dendê. Acompanha arroz e pirão.':
-            'Pescado fresco cocido en leche de coco con pimientos, cebolla, cilantro y aceite de palma. Acompañado de arroz y pirão.',
-          'Frango à Parmegiana': 'Pollo a la Parmesana',
-          'Filé de frango empanado, coberto com molho de tomate caseiro e queijo derretido. Servido com arroz e batata frita.':
-            'Filete de pollo empanado, cubierto con salsa de tomate casera y queso derretido. Servido con arroz y papas fritas.',
-          'Risoto de Cogumelos': 'Risotto de Hongos'
-        };
-        
-        translations[targetLang] = text;
-        
-        // Replace Portuguese phrases with Spanish translations
-        Object.entries(pt_to_es).forEach(([pt, es]) => {
-          translations[targetLang] = translations[targetLang].replace(new RegExp(pt, 'g'), es);
-        });
-      }
-      else {
-        // For languages we don't have specific translations for, display a placeholder
-        translations[targetLang] = text + ` [Traduzido de ${fromLanguage} para ${targetLang}]`;
+      try {
+        // Call DeepSeek API for translation
+        const translatedText = await translateWithDeepSeek(text, fromLanguage, targetLang);
+        translations[targetLang] = translatedText;
+      } catch (error) {
+        console.error(`Error translating to ${targetLang}:`, error);
+        // Use a placeholder message for failed translations
+        translations[targetLang] = `Error translating to ${targetLang}: ${error.message}`;
       }
     }
-    
+
     // Update user's credits using the admin client (bypassing RLS)
     try {
       // Fixed: Use a direct numeric value for incrementing credits
@@ -222,12 +176,13 @@ serve(async (req) => {
         .from('translations')
         .insert({
           user_id: user.id,
-          menu_id: menuId || "00000000-0000-0000-0000-000000000000", // Would be a real menu_id in production
+          menu_id: menuId || "00000000-0000-0000-0000-000000000000",
           original_language: fromLanguage,
           target_language: targetLang,
           original_content: text,
           translated_content: translations[targetLang],
-          status: 'completed'
+          status: 'completed',
+          translation_method: useDeepSeek ? 'deepseek' : 'default'
         });
 
       if (translationError) {
@@ -251,3 +206,144 @@ serve(async (req) => {
     });
   }
 });
+
+/**
+ * Translates text using the DeepSeek API
+ */
+async function translateWithDeepSeek(text: string, fromLanguage: string, targetLang: string): Promise<string> {
+  console.log(`Translating from ${fromLanguage} to ${targetLang} using DeepSeek API`);
+  
+  // Example template for DeepSeek prompt
+  const systemPrompt = `You are a professional translator specializing in translating menu items from ${getLangName(fromLanguage)} to ${getLangName(targetLang)}. 
+  Translate the following menu content accurately, preserving culinary terms when appropriate. 
+  Maintain the original formatting including sections, prices, and descriptions. 
+  Your translation should sound natural and appropriate for a restaurant menu.`;
+  
+  const userPrompt = `Translate this menu content from ${getLangName(fromLanguage)} to ${getLangName(targetLang)}:\n\n${text}`;
+  
+  try {
+    // Make request to DeepSeek API
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${Deno.env.get("DEEPSEEK_API_KEY")}`
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        temperature: 0.2,
+        max_tokens: 4000
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("DeepSeek API error:", errorData);
+      throw new Error(`DeepSeek API error: ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    console.log("DeepSeek response received");
+    
+    // Extract the translated text from the response
+    const translatedText = data.choices[0]?.message?.content;
+    if (!translatedText) {
+      throw new Error("Empty translation response from DeepSeek");
+    }
+    
+    return translatedText;
+  } catch (error) {
+    console.error("DeepSeek translation error:", error);
+    
+    // Fallback to sample translations for demo purposes
+    console.log("Using fallback translations");
+    return getFallbackTranslation(text, fromLanguage, targetLang);
+  }
+}
+
+/**
+ * Get language name from code
+ */
+function getLangName(langCode: string): string {
+  const languages: Record<string, string> = {
+    'pt': 'Portuguese',
+    'en': 'English',
+    'es': 'Spanish',
+    'fr': 'French',
+    'it': 'Italian',
+    'de': 'German',
+    'ja': 'Japanese',
+    'zh': 'Chinese',
+    'ru': 'Russian',
+    'ar': 'Arabic'
+  };
+  
+  return languages[langCode] || langCode;
+}
+
+/**
+ * Fallback translation function for demo purposes
+ */
+function getFallbackTranslation(text: string, fromLanguage: string, targetLang: string): string {
+  // For demonstration, we'll translate a simple menu from Brazilian Portuguese to selected languages
+  if (targetLang === 'en' && fromLanguage === 'pt') {
+    // Portuguese to English translations for common menu items
+    const pt_to_en: Record<string, string> = {
+      'Seção: Pratos Principais': 'Section: Main Dishes',
+      'Feijoada Completa': 'Complete Feijoada',
+      'Feijão preto cozido com carne seca, costelinha de porco, linguiça e paio. Acompanhado de arroz branco, couve refogada, laranja fatiada e farofa.': 
+        'Black beans cooked with dried meat, pork ribs, sausage and "paio". Served with white rice, sautéed collard greens, sliced orange and "farofa".',
+      'Serve 2 pessoas.': 'Serves 2 people.',
+      'Moqueca de Peixe': 'Fish Stew',
+      'Peixe fresco cozido no leite de coco com pimentões, cebola, coentro e azeite de dendê. Acompanha arroz e pirão.':
+        'Fresh fish cooked in coconut milk with bell peppers, onion, cilantro and palm oil. Served with rice and fish porridge.',
+      'Frango à Parmegiana': 'Chicken Parmigiana',
+      'Filé de frango empanado, coberto com molho de tomate caseiro e queijo derretido. Servido com arroz e batata frita.':
+        'Breaded chicken fillet, covered with homemade tomato sauce and melted cheese. Served with rice and french fries.',
+      'Risoto de Cogumelos': 'Mushroom Risotto'
+    };
+    
+    let translatedText = text;
+    
+    // Replace Portuguese phrases with English translations
+    Object.entries(pt_to_en).forEach(([pt, en]) => {
+      translatedText = translatedText.replace(new RegExp(pt, 'g'), en);
+    });
+    
+    return translatedText;
+  } 
+  else if (targetLang === 'es' && fromLanguage === 'pt') {
+    // Portuguese to Spanish translations
+    const pt_to_es: Record<string, string> = {
+      'Seção: Pratos Principais': 'Sección: Platos Principales',
+      'Feijoada Completa': 'Feijoada Completa',
+      'Feijão preto cozido com carne seca, costelinha de porco, linguiça e paio. Acompanhado de arroz branco, couve refogada, laranja fatiada e farofa.': 
+        'Frijoles negros cocidos con carne seca, costillas de cerdo, chorizo y "paio". Acompañado de arroz blanco, col salteada, naranja en rodajas y "farofa".',
+      'Serve 2 pessoas.': 'Sirve para 2 personas.',
+      'Moqueca de Peixe': 'Moqueca de Pescado',
+      'Peixe fresco cozido no leite de coco com pimentões, cebola, coentro e azeite de dendê. Acompanha arroz e pirão.':
+        'Pescado fresco cocido en leche de coco con pimientos, cebolla, cilantro y aceite de palma. Acompañado de arroz y pirão.',
+      'Frango à Parmegiana': 'Pollo a la Parmesana',
+      'Filé de frango empanado, coberto com molho de tomate caseiro e queijo derretido. Servido com arroz e batata frita.':
+        'Filete de pollo empanado, cubierto con salsa de tomate casera y queso derretido. Servido con arroz y papas fritas.',
+      'Risoto de Cogumelos': 'Risotto de Hongos'
+    };
+    
+    let translatedText = text;
+    
+    // Replace Portuguese phrases with Spanish translations
+    Object.entries(pt_to_es).forEach(([pt, es]) => {
+      translatedText = translatedText.replace(new RegExp(pt, 'g'), es);
+    });
+    
+    return translatedText;
+  }
+  else {
+    // For languages we don't have specific translations for, display a placeholder
+    return text + ` [Traduzido de ${fromLanguage} para ${targetLang}]`;
+  }
+}

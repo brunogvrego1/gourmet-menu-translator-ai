@@ -27,13 +27,14 @@ export async function translateText(
       throw new Error('Not authenticated');
     }
 
-    // Call our Supabase edge function
+    // Call our Supabase edge function that will use DeepSeek API
     const { data, error } = await supabase.functions.invoke('translate-menu', {
       body: {
         text: text,
         fromLanguage: fromLanguage === 'auto' ? 'pt' : fromLanguage, // Default to Portuguese if auto
         toLanguages: toLanguages,
-        menuId: menuId
+        menuId: menuId,
+        useDeepSeek: true // Flag to use DeepSeek
       }
     });
 
