@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { CreditCard, BarChart2, Loader2 } from 'lucide-react';
 import ExtraCreditsPurchase from './ExtraCreditsPurchase';
+import CreditUsageHistory from './CreditUsageHistory';
 import { useLocation } from 'react-router-dom';
 
 interface UserCreditInfo {
@@ -23,6 +24,7 @@ const UserCredits = () => {
   const [creditInfo, setCreditInfo] = useState<UserCreditInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -206,7 +208,11 @@ const UserCredits = () => {
                 </span>
               </Button>
               
-              <Button variant="outline" className="space-x-2">
+              <Button 
+                variant="outline" 
+                className="space-x-2"
+                onClick={() => setHistoryDialogOpen(true)}
+              >
                 <BarChart2 className="h-4 w-4" />
                 <span>Ver histórico de uso</span>
               </Button>
@@ -228,6 +234,12 @@ const UserCredits = () => {
           <ExtraCreditsPurchase />
         </div>
       )}
+
+      {/* Credit usage history dialog */}
+      <CreditUsageHistory 
+        open={historyDialogOpen} 
+        onOpenChange={setHistoryDialogOpen} 
+      />
     </div>
   );
 };
