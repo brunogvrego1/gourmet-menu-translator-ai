@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -8,6 +9,7 @@ type PricingTierProps = {
   price: string;
   description: string;
   features: string[];
+  credits: number;
   buttonText: string;
   highlighted?: boolean;
 };
@@ -17,6 +19,7 @@ const PricingTier = ({
   price, 
   description, 
   features, 
+  credits,
   buttonText, 
   highlighted = false 
 }: PricingTierProps) => {
@@ -48,6 +51,14 @@ const PricingTier = ({
             </li>
           ))}
         </ul>
+        <div className="mt-4 pt-3 border-t border-gray-100">
+          <div className="flex items-center justify-center">
+            <div className="text-center">
+              <span className="text-lg font-medium text-gourmet-purple">{credits}</span>
+              <span className="text-sm text-gray-500 ml-1">créditos incluídos</span>
+            </div>
+          </div>
+        </div>
       </CardContent>
       <CardFooter>
         <Button 
@@ -97,10 +108,12 @@ const Pricing = () => {
       description: 'Experimente um cardápio sem compromisso',
       features: [
         'Tradução de 1 cardápio simples',
+        '1 idioma, até 2 páginas',
         'Detecção inteligente de idioma',
         'Visualização digital instantânea',
         'Suporte por email em horário comercial'
       ],
+      credits: 2,
       buttonText: 'Iniciar teste gratuito',
       highlighted: false
     },
@@ -109,12 +122,14 @@ const Pricing = () => {
       price: 'R$ 7,90',
       description: 'Ideal para cafés e bistrôs',
       features: [
-        'Até 2 páginas por cardápio',
-        'Tradução profissional para inglês',
+        '1 cardápio com até 2 páginas',
+        'Tradução para 1 idioma',
+        '1 idioma extra (opcional)',
         'Adaptação cultural personalizada',
         'Formato digital otimizado em PDF',
         'Suporte por email prioritário'
       ],
+      credits: 3,
       buttonText: 'Escolher este plano',
       highlighted: false
     },
@@ -123,12 +138,14 @@ const Pricing = () => {
       price: 'R$ 29,90',
       description: 'Perfeito para restaurantes em crescimento',
       features: [
-        'Até 10 páginas por cardápio',
-        'Tradução para até 2 idiomas à escolha',
+        '1 cardápio de até 10 páginas',
+        'Tradução para até 2 idiomas',
         'Alta qualidade em PDF ou HTML interativo',
         'Adaptação cultural refinada dos pratos',
+        'Créditos extra para páginas adicionais',
         'Suporte prioritário com resposta em 24h'
       ],
+      credits: 6,
       buttonText: 'Escolher este plano',
       highlighted: true
     },
@@ -137,12 +154,14 @@ const Pricing = () => {
       price: 'R$ 199,90',
       description: 'Solução completa para redes e hotéis',
       features: [
+        'Tradução para até 5 idiomas',
         'Páginas ilimitadas por cardápio',
-        'Tradução para até 5 idiomas principais',
         'Formato personalizado com sua identidade visual',
         'Adaptação cultural premium com consultoria',
+        'Créditos para múltiplos cardápios',
         'Suporte dedicado 24/7 com gerente de conta'
       ],
+      credits: 15,
       buttonText: 'Falar com consultor',
       highlighted: false
     }
@@ -203,6 +222,7 @@ const Pricing = () => {
               price={plan.price}
               description={plan.description}
               features={plan.features}
+              credits={plan.credits}
               buttonText={plan.buttonText}
               highlighted={plan.highlighted}
             />

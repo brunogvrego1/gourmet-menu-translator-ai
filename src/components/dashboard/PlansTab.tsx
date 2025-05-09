@@ -35,13 +35,14 @@ const PlansTab = () => {
       description: 'Experimente um cardápio sem compromisso',
       features: [
         { text: 'Tradução de 1 cardápio simples' },
+        { text: '1 idioma, até 2 páginas' },
         { text: 'Detecção inteligente de idioma' },
         { text: 'Visualização digital instantânea' },
         { text: 'Suporte por email em horário comercial' }
       ],
       buttonText: 'Plano atual',
       highlighted: false,
-      creditsAmount: 1
+      creditsAmount: 2
     },
     {
       id: 'small',
@@ -50,15 +51,16 @@ const PlansTab = () => {
       pricePerUnit: '/cardápio',
       description: 'Ideal para cafés e bistrôs',
       features: [
-        { text: 'Até 2 páginas por cardápio' },
-        { text: 'Tradução profissional para inglês' },
+        { text: '1 cardápio com até 2 páginas' },
+        { text: 'Tradução para 1 idioma' },
+        { text: '1 idioma extra (opcional)' },
         { text: 'Adaptação cultural personalizada' },
         { text: 'Formato digital otimizado em PDF' },
         { text: 'Suporte por email prioritário' }
       ],
       buttonText: 'Escolher este plano',
       highlighted: false,
-      creditsAmount: 2
+      creditsAmount: 3
     },
     {
       id: 'professional',
@@ -67,15 +69,16 @@ const PlansTab = () => {
       pricePerUnit: '/cardápio',
       description: 'Perfeito para restaurantes em crescimento',
       features: [
-        { text: 'Até 10 páginas por cardápio' },
-        { text: 'Tradução para até 2 idiomas à escolha' },
+        { text: '1 cardápio de até 10 páginas' },
+        { text: 'Tradução para até 2 idiomas' },
         { text: 'Alta qualidade em PDF ou HTML interativo' },
         { text: 'Adaptação cultural refinada dos pratos' },
+        { text: 'Créditos extra para páginas adicionais' },
         { text: 'Suporte prioritário com resposta em 24h' }
       ],
       buttonText: 'Escolher este plano',
       highlighted: true,
-      creditsAmount: 10
+      creditsAmount: 6
     },
     {
       id: 'business',
@@ -84,15 +87,16 @@ const PlansTab = () => {
       pricePerUnit: '/cardápio',
       description: 'Solução completa para redes e hotéis',
       features: [
+        { text: 'Tradução para até 5 idiomas' },
         { text: 'Páginas ilimitadas por cardápio' },
-        { text: 'Tradução para até 5 idiomas principais' },
         { text: 'Formato personalizado com sua identidade visual' },
         { text: 'Adaptação cultural premium com consultoria' },
+        { text: 'Créditos para múltiplos cardápios' },
         { text: 'Suporte dedicado 24/7 com gerente de conta' }
       ],
       buttonText: 'Falar com consultor',
       highlighted: false,
-      creditsAmount: 50
+      creditsAmount: 15
     }
   ];
 
@@ -152,11 +156,15 @@ const PlansTab = () => {
                     <span className="text-sm">{feature.text}</span>
                   </li>
                 ))}
-                <li className="flex items-start font-medium">
-                  <Check className="text-gourmet-purple mr-2 h-5 w-5 flex-shrink-0" />
-                  <span className="text-sm">{plan.creditsAmount} créditos para traduções</span>
-                </li>
               </ul>
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-center">
+                  <div className="text-center">
+                    <span className="text-lg font-medium text-gourmet-purple">{plan.creditsAmount}</span>
+                    <span className="text-sm text-gray-500 ml-1">créditos incluídos</span>
+                  </div>
+                </div>
+              </div>
             </CardContent>
             <CardFooter>
               <Button 
