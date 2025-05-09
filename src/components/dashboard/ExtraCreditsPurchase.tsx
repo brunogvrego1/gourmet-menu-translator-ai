@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -156,7 +155,7 @@ const ExtraCreditsPurchase = () => {
       <div className="mt-4 text-sm text-gray-500">
         <p className="flex items-center gap-1">
           <BadgeDollarSign className="h-4 w-4 text-gourmet-purple" />
-          <span>Cada tradução para um idioma consome 10 créditos.</span>
+          <span>Cada tradução para um idioma consome 1 crédito.</span>
         </p>
       </div>
     </div>
