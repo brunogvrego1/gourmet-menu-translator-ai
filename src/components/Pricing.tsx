@@ -106,6 +106,20 @@ const Pricing = () => {
       highlighted: false
     },
     {
+      title: 'Pequeno Negócio',
+      price: 'R$ 7,90',
+      description: 'Para negócios iniciantes',
+      features: [
+        'Até 2 páginas por cardápio',
+        'Tradução para inglês',
+        'Adaptação cultural dos pratos',
+        'Formato digital em PDF',
+        'Suporte por email'
+      ],
+      buttonText: 'Escolher plano',
+      highlighted: false
+    },
+    {
       title: 'Profissional',
       price: 'R$ 29,90',
       description: 'Para pequenos restaurantes',
@@ -182,7 +196,7 @@ const Pricing = () => {
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
           {pricingPlans.map((plan, index) => (
             <PricingTier
               key={index}
