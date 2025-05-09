@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { createWorker } from 'tesseract.js';
-import { Loader } from 'lucide-react';
+import { Loader, LogIn } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 type FileUploaderProps = {
   onFileProcessed: (text: string) => void;
@@ -15,6 +17,7 @@ const FileUploader = ({ onFileProcessed }: FileUploaderProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [processingStage, setProcessingStage] = useState('');
+  const { user } = useAuth();
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -114,6 +117,28 @@ const FileUploader = ({ onFileProcessed }: FileUploaderProps) => {
       setProcessingStage('');
     }
   };
+
+  // If no user is logged in, show login wall
+  if (!user) {
+    return (
+      <Card className="border-dashed border-2 border-gourmet-soft-purple hover:border-gourmet-purple transition-colors">
+        <CardContent className="flex flex-col items-center justify-center h-64 p-6">
+          <div className="w-16 h-16 bg-gourmet-soft-purple rounded-full flex items-center justify-center mb-4">
+            <LogIn className="w-8 h-8 text-gourmet-purple" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Login necessário</h3>
+          <p className="text-sm text-gray-500 text-center mb-4">
+            Você precisa estar logado para carregar e traduzir cardápios.
+          </p>
+          <Link to="/auth">
+            <Button className="bg-gourmet-purple hover:bg-gourmet-dark-purple">
+              Fazer login
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="border-dashed border-2 border-gourmet-soft-purple hover:border-gourmet-purple transition-colors">
