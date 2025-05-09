@@ -81,11 +81,11 @@ const Pricing = () => {
     },
     {
       title: 'Profissional',
-      price: 'R$ 49,90',
-      description: 'Para viajantes frequentes',
+      price: 'R$ 29,90',
+      description: 'Para pequenos restaurantes',
       features: [
-        'Tradução de 10 cardápios por mês',
-        'Detecção automática de idioma',
+        'Até 10 páginas por cardápio',
+        'Tradução para até 2 idiomas',
         'Alta qualidade em PDF ou HTML',
         'Adaptação cultural dos pratos',
         'Suporte prioritário'
@@ -98,11 +98,10 @@ const Pricing = () => {
       price: 'R$ 199,90',
       description: 'Para restaurantes e hotéis',
       features: [
-        'Tradução ilimitada de cardápios',
-        'Múltiplos idiomas de destino',
+        'Número ilimitado de páginas',
+        'Tradução para até 5 idiomas',
         'Formato personalizado com branding',
         'Adaptação cultural avançada',
-        'API para integração',
         'Suporte dedicado 24/7'
       ],
       buttonText: 'Contate-nos',
@@ -116,7 +115,7 @@ const Pricing = () => {
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-serif font-semibold mb-4">Planos e preços</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Escolha o plano que melhor se adapta às suas necessidades de tradução gourmet.
+            Escolha o plano que melhor se adapta às necessidades do seu estabelecimento.
           </p>
         </div>
         
