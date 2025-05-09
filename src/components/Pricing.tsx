@@ -94,14 +94,14 @@ const Pricing = () => {
     {
       title: 'Teste Gratuito',
       price: 'Grátis',
-      description: 'Experimente sem compromisso por 7 dias',
+      description: 'Experimente um cardápio sem compromisso',
       features: [
         'Tradução de 1 cardápio simples',
         'Detecção inteligente de idioma',
         'Visualização digital instantânea',
         'Suporte por email em horário comercial'
       ],
-      buttonText: 'Iniciar período gratuito',
+      buttonText: 'Iniciar teste gratuito',
       highlighted: false
     },
     {
