@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -93,16 +92,16 @@ const AdvantageCard = ({ icon, title, description }: { icon: React.ReactNode, ti
 const Pricing = () => {
   const pricingPlans = [
     {
-      title: 'Básico',
+      title: 'Teste Gratuito',
       price: 'Grátis',
-      description: 'Para uso pessoal ocasional',
+      description: 'Experimente por 7 dias',
       features: [
         'Tradução de 1 cardápio por mês',
         'Detecção automática de idioma',
         'Formato digital básico',
         'Suporte por email'
       ],
-      buttonText: 'Começar grátis',
+      buttonText: 'Começar teste',
       highlighted: false
     },
     {
