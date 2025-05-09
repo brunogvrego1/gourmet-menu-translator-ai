@@ -37,7 +37,7 @@ const Navbar = () => {
         <Link to="/precos" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
           Preços
         </Link>
-        <Link to="/" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
+        <Link to="/contato" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
           Contato
         </Link>
         
@@ -80,7 +80,7 @@ const Navbar = () => {
             <Link to="/precos" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
               Preços
             </Link>
-            <Link to="/" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
+            <Link to="/contato" className="text-sm font-medium hover:text-gourmet-purple transition-colors">
               Contato
             </Link>
             
