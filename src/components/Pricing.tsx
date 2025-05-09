@@ -94,56 +94,56 @@ const Pricing = () => {
     {
       title: 'Teste Gratuito',
       price: 'Grátis',
-      description: 'Experimente por 7 dias',
+      description: 'Experimente sem compromisso por 7 dias',
       features: [
-        'Tradução de 1 cardápio por mês',
-        'Detecção automática de idioma',
-        'Formato digital básico',
-        'Suporte por email'
+        'Tradução de 1 cardápio simples',
+        'Detecção inteligente de idioma',
+        'Visualização digital instantânea',
+        'Suporte por email em horário comercial'
       ],
-      buttonText: 'Começar teste',
+      buttonText: 'Iniciar período gratuito',
       highlighted: false
     },
     {
       title: 'Pequeno Negócio',
       price: 'R$ 7,90',
-      description: 'Para negócios iniciantes',
+      description: 'Ideal para cafés e bistrôs',
       features: [
         'Até 2 páginas por cardápio',
-        'Tradução para inglês',
-        'Adaptação cultural dos pratos',
-        'Formato digital em PDF',
-        'Suporte por email'
+        'Tradução profissional para inglês',
+        'Adaptação cultural personalizada',
+        'Formato digital otimizado em PDF',
+        'Suporte por email prioritário'
       ],
-      buttonText: 'Escolher plano',
+      buttonText: 'Escolher este plano',
       highlighted: false
     },
     {
       title: 'Profissional',
       price: 'R$ 29,90',
-      description: 'Para pequenos restaurantes',
+      description: 'Perfeito para restaurantes em crescimento',
       features: [
         'Até 10 páginas por cardápio',
-        'Tradução para até 2 idiomas',
-        'Alta qualidade em PDF ou HTML',
-        'Adaptação cultural dos pratos',
-        'Suporte prioritário'
+        'Tradução para até 2 idiomas à escolha',
+        'Alta qualidade em PDF ou HTML interativo',
+        'Adaptação cultural refinada dos pratos',
+        'Suporte prioritário com resposta em 24h'
       ],
-      buttonText: 'Escolher plano',
+      buttonText: 'Escolher este plano',
       highlighted: true
     },
     {
       title: 'Business',
       price: 'R$ 199,90',
-      description: 'Para restaurantes e hotéis',
+      description: 'Solução completa para redes e hotéis',
       features: [
-        'Número ilimitado de páginas',
-        'Tradução para até 5 idiomas',
-        'Formato personalizado com branding',
-        'Adaptação cultural avançada',
-        'Suporte dedicado 24/7'
+        'Páginas ilimitadas por cardápio',
+        'Tradução para até 5 idiomas principais',
+        'Formato personalizado com sua identidade visual',
+        'Adaptação cultural premium com consultoria',
+        'Suporte dedicado 24/7 com gerente de conta'
       ],
-      buttonText: 'Contate-nos',
+      buttonText: 'Falar com consultor',
       highlighted: false
     }
   ];
