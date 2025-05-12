@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -167,7 +166,7 @@ const PlansTab = () => {
           Selecione o plano que melhor se adapta às necessidades do seu estabelecimento
         </p>
         <div className="mt-4 bg-green-100 text-green-800 py-2 px-4 rounded-lg inline-block">
-          <p className="font-medium">Promoção! Planos gratuitos até 03 de novembro de 2025</p>
+          <p className="font-medium">Promoção! Planos gratuitos até 03 de novembro de 2025. Uma semana antes da COP 30</p>
         </div>
       </div>
 
