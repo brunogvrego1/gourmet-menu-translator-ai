@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 
 type FeatureProps = {
   title: string;
@@ -23,8 +24,8 @@ const Features = () => {
   const features = [
     {
       icon: '📷',
-      title: 'Upload Inteligente',
-      description: 'Carregue fotos ou PDFs de cardápios e nosso sistema extrairá automaticamente o texto.',
+      title: 'Upload Simples',
+      description: 'Envie seu texto diretamente na plataforma para tradução imediata do seu cardápio.',
     },
     {
       icon: '🔤',
@@ -37,9 +38,9 @@ const Features = () => {
       description: 'Traduções elaboradas que mantêm o contexto e a nuance culinária dos pratos.',
     },
     {
-      icon: '📱',
-      title: 'Entrega por E-mail',
-      description: 'Receba o cardápio traduzido em seu e-mail em formato digital de alta qualidade.',
+      icon: '⚡',
+      title: 'Entrega Instantânea',
+      description: 'Receba seu cardápio traduzido em segundos, pronto para uso imediato.',
     },
   ];
 
