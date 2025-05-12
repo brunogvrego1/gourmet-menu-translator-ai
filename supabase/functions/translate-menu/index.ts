@@ -1,5 +1,4 @@
 
-// supabase/functions/translate-menu/index.ts
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.37.0";
 
@@ -212,7 +211,7 @@ serve(async (req) => {
 async function translateWithDeepSeek(text: string, fromLanguage: string, targetLang: string): Promise<string> {
   console.log(`Translating from ${fromLanguage} to ${targetLang} using DeepSeek API`);
   
-  // Updated specialized culinary translation prompt with new requirements
+  // Updated specialized culinary translation prompt with clearer instructions
   const systemPrompt = `Você é um tradutor gastronômico profissional, com foco em adaptar menus e cardápios para turistas, mantendo o charme e relevância cultural do original. Ao traduzir de ${getLangName(fromLanguage)} para ${getLangName(targetLang)}, preserve o estilo do restaurante e destaque ingredientes ou preparações típicas com explicações sutis e elegantes.
 
 Diretrizes importantes:
@@ -226,6 +225,11 @@ Para ingredientes exóticos ou desconhecidos para estrangeiros:
 - Identifique todos os ingredientes ou termos culinários que seriam desconhecidos para um turista médio.
 - Crie um glossário ao final da tradução com explicações curtas sobre cada ingrediente ou termo exótico.
 - Formate o glossário assim: "GLOSSÁRIO: [termo] - [explicação breve]. [termo] - [explicação breve]."
+
+IMPORTANTE:
+- Sua resposta deve conter APENAS a tradução do texto e o glossário quando aplicável.
+- NÃO inclua explicações, comentários, notas ou análises adicionais na sua resposta.
+- NÃO inclua frases como "Aqui está a tradução" ou "Tradução concluída".
 
 Evite repetir palavras, use sinônimos criativos, preserve a intenção original.`;
   
