@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MessageSquare } from 'lucide-react';
@@ -61,7 +62,7 @@ const Footer = () => {
                   Fale Conosco
                 </a>
               </li>
-              <li className="text-gray-300">São Paulo, Brasil</li>
+              <li className="text-gray-300">Belém, Brasil</li>
             </ul>
           </div>
         </div>
