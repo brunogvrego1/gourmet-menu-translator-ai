@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { WhatsApp } from 'lucide-react';
+import { Button } from './ui/button';
 
 const Footer = () => {
   return (
@@ -48,8 +50,18 @@ const Footer = () => {
           
           <div>
             <h3 className="text-lg font-medium mb-4">Contato</h3>
-            <ul className="space-y-2">
-              <li className="text-gray-300">contato@tradutorgourmet.com</li>
+            <ul className="space-y-4">
+              <li>
+                <a 
+                  href="https://wa.me/5591993714041" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition-colors"
+                >
+                  <WhatsApp size={18} />
+                  Fale Conosco
+                </a>
+              </li>
               <li className="text-gray-300">São Paulo, Brasil</li>
             </ul>
           </div>
