@@ -18,7 +18,12 @@ const Footer = () => {
               elegantes e culturalmente adaptadas para cardápios do mundo todo.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              <a 
+                href="https://www.instagram.com/tradutorgourmet?igsh=MXdmc2MweDl0cTc2dg%3D%3D&utm_source=qr" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-gray-300 hover:text-white transition-colors"
+              >
                 <span className="sr-only">Instagram</span>
                 <Instagram className="h-6 w-6" />
               </a>
