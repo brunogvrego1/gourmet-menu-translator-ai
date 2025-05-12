@@ -1,13 +1,12 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { createWorker } from 'tesseract.js';
 import { Loader, LogIn, X, FileImage } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
 
 type FileUploaderProps = {
   onFileProcessed: (text: string) => void;
@@ -122,8 +121,8 @@ const FileUploader = ({ onFileProcessed, multiple = false }: FileUploaderProps) 
     
     try {
       if (file.type.includes('image')) {
-        // Use Tesseract.js for OCR on images
-        toast.info('Processando imagem. Isso pode levar um momento.');
+        // Use Deepseek API for OCR on images
+        toast.info('Processando imagem com Deepseek OCR. Isso pode levar um momento.');
         const text = await extractTextFromImage(file);
         onFileProcessed(text);
       } else if (file.type === 'application/pdf') {
@@ -153,34 +152,51 @@ const FileUploader = ({ onFileProcessed, multiple = false }: FileUploaderProps) 
 
   const extractTextFromImage = async (file: File): Promise<string> => {
     try {
-      const worker = await createWorker({
-        logger: progress => {
-          setProgress(Math.round(progress.progress * 100));
-          setProcessingStage(progress.status);
-        }
+      setProcessingStage('Convertendo imagem para base64');
+      setProgress(10);
+      
+      // Convert image file to base64
+      const base64Image = await fileToBase64(file);
+      setProgress(30);
+      
+      setProcessingStage('Enviando para o serviço de OCR');
+      
+      // Call our Supabase Edge Function for OCR
+      const { data, error } = await supabase.functions.invoke('ocr-image', {
+        body: { imageBase64: base64Image },
       });
       
-      // Load language data - both Portuguese and English
-      await worker.loadLanguage('por+eng');
-      await worker.initialize('por+eng');
+      if (error) {
+        console.error('OCR function error:', error);
+        throw new Error('Erro na extração de texto: ' + error.message);
+      }
       
-      // Convert the file to a format Tesseract can use
-      const imageUrl = URL.createObjectURL(file);
+      setProgress(90);
+      setProcessingStage('Finalizando processamento');
       
-      // Recognize text
-      const result = await worker.recognize(imageUrl);
-      
-      // Clean up
-      URL.revokeObjectURL(imageUrl);
-      await worker.terminate();
+      if (!data.text) {
+        throw new Error('Não foi possível extrair texto da imagem');
+      }
       
       toast.success('Texto extraído com sucesso!');
-      return result.data.text;
+      setProgress(100);
+      
+      return data.text;
     } catch (error) {
       console.error('OCR error:', error);
       toast.error('Erro ao extrair texto da imagem. Tente novamente.');
       throw error;
     }
+  };
+
+  // Helper function to convert File to base64 string
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
   };
 
   const captureMultiplePhotos = async () => {

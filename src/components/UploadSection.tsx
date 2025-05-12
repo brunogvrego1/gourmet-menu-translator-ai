@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -123,6 +122,7 @@ const UploadSection = () => {
 
   const handleFileProcessed = (text: string) => {
     setMenuText(text);
+    toast.success('Texto extraído com sucesso! Você pode editar o texto antes de traduzir.');
   };
 
   return (
