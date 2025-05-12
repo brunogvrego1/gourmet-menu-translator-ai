@@ -212,13 +212,20 @@ serve(async (req) => {
 async function translateWithDeepSeek(text: string, fromLanguage: string, targetLang: string): Promise<string> {
   console.log(`Translating from ${fromLanguage} to ${targetLang} using DeepSeek API`);
   
-  // Specialized culinary translation prompt
+  // Updated specialized culinary translation prompt with new requirements
   const systemPrompt = `Você é um tradutor gastronômico profissional, com foco em adaptar menus e cardápios para turistas, mantendo o charme e relevância cultural do original. Ao traduzir de ${getLangName(fromLanguage)} para ${getLangName(targetLang)}, preserve o estilo do restaurante e destaque ingredientes ou preparações típicas com explicações sutis e elegantes.
 
+Diretrizes importantes:
 - Traduza como se estivesse explicando o prato para um cliente estrangeiro exigente.
+- NUNCA traduza valores monetários ou preços. Mantenha-os exatamente como aparecem no original.
 - Evite traduções literais.
 - Use termos que comuniquem o *espírito* do prato.
 - Inclua observações culturais curtas quando necessário (ex: [popular in Bahia], [similar to risotto]).
+
+Para ingredientes exóticos ou desconhecidos para estrangeiros:
+- Identifique todos os ingredientes ou termos culinários que seriam desconhecidos para um turista médio.
+- Crie um glossário ao final da tradução com explicações curtas sobre cada ingrediente ou termo exótico.
+- Formate o glossário assim: "GLOSSÁRIO: [termo] - [explicação breve]. [termo] - [explicação breve]."
 
 Evite repetir palavras, use sinônimos criativos, preserve a intenção original.`;
   
@@ -317,6 +324,9 @@ function getFallbackTranslation(text: string, fromLanguage: string, targetLang: 
       translatedText = translatedText.replace(new RegExp(pt, 'g'), en);
     });
     
+    // Adding a glossary section for exotic ingredients
+    translatedText += "\n\nGLOSSÁRIO:\nFarofa - A toasted cassava flour mixture, often with added ingredients like bacon or butter.\nPaio - A type of Portuguese smoked sausage.\nPirão - A thick, creamy fish gravy made from fish stock and cassava flour.";
+    
     return translatedText;
   } 
   else if (targetLang === 'es' && fromLanguage === 'pt') {
@@ -343,10 +353,13 @@ function getFallbackTranslation(text: string, fromLanguage: string, targetLang: 
       translatedText = translatedText.replace(new RegExp(pt, 'g'), es);
     });
     
+    // Adding a glossary section for exotic ingredients
+    translatedText += "\n\nGLOSÁRIO:\nFarofa - Una mezcla de harina de yuca tostada, a menudo con ingredientes adicionales como tocino o mantequilla.\nPaio - Un tipo de embutido ahumado portugués.\nDendê - Aceite de palma africana con color rojizo y sabor característico.";
+    
     return translatedText;
   }
   else {
     // For languages we don't have specific translations for, display a placeholder
-    return text + ` [Traduzido de ${fromLanguage} para ${targetLang}]`;
+    return text + ` [Traduzido de ${fromLanguage} para ${targetLang}]\n\nGLOSSÁRIO: Exemplo de ingredientes exóticos e suas explicações.`;
   }
 }
