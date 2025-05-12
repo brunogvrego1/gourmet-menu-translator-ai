@@ -15,12 +15,14 @@ type Plan = {
   id: string;
   title: string;
   price: string;
+  originalPrice?: string; // Adicionado para mostrar o preço original
   pricePerUnit: string;
   description: string;
   features: PlanFeature[];
   buttonText: string;
   highlighted?: boolean;
   creditsAmount: number;
+  isFree?: boolean; // Adicionado para indicar se é gratuito
 };
 
 const PlansTab = () => {
@@ -44,12 +46,13 @@ const PlansTab = () => {
       ],
       buttonText: 'Plano atual',
       highlighted: false,
-      creditsAmount: 2
+      creditsAmount: 6 // Atualizado para 6 créditos
     },
     {
       id: 'small',
       title: 'Pequeno Negócio',
-      price: 'R$ 7,90',
+      price: 'Grátis',
+      originalPrice: 'R$ 7,90',
       pricePerUnit: '/cardápio',
       description: 'Ideal para cafés e bistrôs',
       features: [
@@ -62,12 +65,14 @@ const PlansTab = () => {
       ],
       buttonText: 'Escolher este plano',
       highlighted: false,
-      creditsAmount: 3
+      creditsAmount: 6,
+      isFree: true
     },
     {
       id: 'professional',
       title: 'Profissional',
-      price: 'R$ 29,90',
+      price: 'Grátis',
+      originalPrice: 'R$ 29,90',
       pricePerUnit: '/cardápio',
       description: 'Perfeito para restaurantes em crescimento',
       features: [
@@ -80,7 +85,8 @@ const PlansTab = () => {
       ],
       buttonText: 'Escolher este plano',
       highlighted: true,
-      creditsAmount: 6
+      creditsAmount: 6,
+      isFree: true
     },
     {
       id: 'business',
@@ -91,8 +97,8 @@ const PlansTab = () => {
       features: [
         { text: 'Tradução para até 5 idiomas' },
         { text: 'Páginas ilimitadas por cardápio' },
-        { text: 'Formato personalizado com o estilo de escrita da sua marca' }, // Updated this line
-        { text: 'Adaptação cultural premium' }, // Updated this line
+        { text: 'Formato personalizado com o estilo de escrita da sua marca' },
+        { text: 'Adaptação cultural premium' },
         { text: 'Créditos para múltiplos cardápios' },
         { text: 'Suporte dedicado 24/7 com gerente de conta' }
       ],
@@ -160,6 +166,9 @@ const PlansTab = () => {
         <p className="text-gray-500 mt-2">
           Selecione o plano que melhor se adapta às necessidades do seu estabelecimento
         </p>
+        <div className="mt-4 bg-green-100 text-green-800 py-2 px-4 rounded-lg inline-block">
+          <p className="font-medium">Promoção! Planos gratuitos até 03 de novembro de 2025</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -177,9 +186,17 @@ const PlansTab = () => {
                 MAIS POPULAR
               </div>
             )}
+            {plan.isFree && (
+              <div className="bg-green-500 text-white text-center py-1 text-xs font-medium">
+                GRATUITO ATÉ 03/11/2025
+              </div>
+            )}
             <CardHeader className={`pb-6 pt-6 ${plan.highlighted ? 'bg-gourmet-soft-purple/50' : ''}`}>
               <h3 className="text-xl font-serif font-semibold mb-2">{plan.title}</h3>
               <div className="flex items-baseline">
+                {plan.originalPrice && (
+                  <span className="text-md font-medium line-through text-gray-400 mr-2">{plan.originalPrice}</span>
+                )}
                 <span className="text-3xl font-bold">{plan.price}</span>
                 {plan.pricePerUnit && <span className="ml-1 text-gray-500">{plan.pricePerUnit}</span>}
               </div>

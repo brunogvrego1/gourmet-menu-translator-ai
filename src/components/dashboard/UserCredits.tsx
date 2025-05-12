@@ -108,7 +108,7 @@ const UserCredits = () => {
         .from('credits')
         .insert({
           user_id: user?.id,
-          total_credits: 2, // Free tier starts with 2 credits as per new plan
+          total_credits: 6, // Atualizado para 6 créditos
           used_credits: 0,
           tier: 'free'
         })

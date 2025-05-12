@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -6,21 +7,25 @@ import { Check, Globe, Utensils, Award } from 'lucide-react';
 type PricingTierProps = {
   title: string;
   price: string;
+  originalPrice?: string; // Adicionado para mostrar o preço original
   description: string;
   features: string[];
   credits: number;
   buttonText: string;
   highlighted?: boolean;
+  isFree?: boolean; // Adicionado para indicar se é gratuito
 };
 
 const PricingTier = ({ 
   title, 
   price, 
+  originalPrice,
   description, 
   features, 
   credits,
   buttonText, 
-  highlighted = false 
+  highlighted = false,
+  isFree = false
 }: PricingTierProps) => {
   return (
     <Card className={`overflow-hidden ${
@@ -33,9 +38,17 @@ const PricingTier = ({
           MAIS POPULAR
         </div>
       )}
+      {isFree && (
+        <div className="bg-green-500 text-white text-center py-1 text-xs font-medium">
+          GRATUITO ATÉ 03/11/2025
+        </div>
+      )}
       <CardHeader className={`pb-6 pt-6 ${highlighted ? 'bg-gourmet-soft-purple/50' : ''}`}>
         <h3 className="text-xl font-serif font-semibold mb-2">{title}</h3>
-        <div className="flex items-baseline">
+        <div className="flex items-baseline flex-wrap">
+          {originalPrice && (
+            <span className="text-xl font-medium line-through text-gray-400 mr-2">{originalPrice}</span>
+          )}
           <span className="text-3xl font-bold">{price}</span>
           {price !== 'Grátis' && <span className="ml-1 text-gray-500">/cardápio</span>}
         </div>
@@ -112,13 +125,14 @@ const Pricing = () => {
         'Visualização digital instantânea',
         'Suporte por email em horário comercial'
       ],
-      credits: 2,
+      credits: 6, // Atualizado para 6 créditos
       buttonText: 'Iniciar teste gratuito',
       highlighted: false
     },
     {
       title: 'Pequeno Negócio',
-      price: 'R$ 7,90',
+      price: 'Grátis',
+      originalPrice: 'R$ 7,90',
       description: 'Ideal para cafés e bistrôs',
       features: [
         '1 cardápio com até 2 páginas',
@@ -128,13 +142,15 @@ const Pricing = () => {
         'Formato digital otimizado em PDF',
         'Suporte por email prioritário'
       ],
-      credits: 3,
+      credits: 6, // Atualizado
       buttonText: 'Escolher este plano',
-      highlighted: false
+      highlighted: false,
+      isFree: true
     },
     {
       title: 'Profissional',
-      price: 'R$ 29,90',
+      price: 'Grátis',
+      originalPrice: 'R$ 29,90',
       description: 'Perfeito para restaurantes em crescimento',
       features: [
         '1 cardápio de até 10 páginas',
@@ -146,7 +162,8 @@ const Pricing = () => {
       ],
       credits: 6,
       buttonText: 'Escolher este plano',
-      highlighted: true
+      highlighted: true,
+      isFree: true
     },
     {
       title: 'Business',
@@ -155,8 +172,8 @@ const Pricing = () => {
       features: [
         'Tradução para até 5 idiomas',
         'Páginas ilimitadas por cardápio',
-        'Formato personalizado com o estilo de escrita da sua marca', // Updated this line
-        'Adaptação cultural premium', // Updated this line
+        'Formato personalizado com o estilo de escrita da sua marca',
+        'Adaptação cultural premium',
         'Créditos para múltiplos cardápios',
         'Suporte dedicado 24/7 com gerente de conta'
       ],
@@ -211,6 +228,9 @@ const Pricing = () => {
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Escolha o plano que melhor se adapta às necessidades do seu estabelecimento.
           </p>
+          <div className="mt-4 bg-green-100 text-green-800 py-2 px-4 rounded-lg inline-block">
+            <p className="font-medium">Promoção! Planos gratuitos até 03 de novembro de 2025</p>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
@@ -219,11 +239,13 @@ const Pricing = () => {
               key={index}
               title={plan.title}
               price={plan.price}
+              originalPrice={plan.originalPrice}
               description={plan.description}
               features={plan.features}
               credits={plan.credits}
               buttonText={plan.buttonText}
               highlighted={plan.highlighted}
+              isFree={plan.isFree}
             />
           ))}
         </div>
