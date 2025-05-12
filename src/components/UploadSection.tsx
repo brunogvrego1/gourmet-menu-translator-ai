@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import FileUploader from './menu-translator/FileUploader';
 import TextEditor from './menu-translator/TextEditor';
 import { translateText } from '@/services/translationService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -121,10 +120,6 @@ const UploadSection = () => {
     }
   };
 
-  const handleFileProcessed = (text: string) => {
-    setMenuText(text);
-  };
-
   return (
     <section className="py-16 md:py-24">
       <div className="max-w-4xl mx-auto px-6 md:px-10">
@@ -133,42 +128,46 @@ const UploadSection = () => {
             Traduza seu cardápio agora
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Carregue uma ou várias imagens, fotos ou PDFs dos cardápios que deseja traduzir. 
-            Nosso sistema com OCR (Reconhecimento Óptico de Caracteres) extrairá o texto automaticamente.
+            Digite o texto do seu cardápio e traduza para múltiplos idiomas instantaneamente.
           </p>
         </div>
         
-        {!menuText ? (
-          <FileUploader onFileProcessed={handleFileProcessed} multiple={true} />
-        ) : (
-          <>
-            {Object.keys(translatedTexts).length > 0 && (
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome do cardápio
-                </label>
-                <input
-                  type="text"
-                  value={menuName}
-                  onChange={(e) => setMenuName(e.target.value)}
-                  placeholder="Digite um nome para este cardápio"
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                />
-              </div>
-            )}
-            
-            <TextEditor 
-              originalText={menuText}
-              translatedTexts={translatedTexts}
-              fromLanguage={fromLanguage}
-              toLanguages={toLanguages}
-              selectedLanguage={selectedLanguage}
-              onOriginalTextChange={setMenuText}
-              onFromLanguageChange={setFromLanguage}
-              onToLanguagesChange={setToLanguages}
-              onSelectedLanguageChange={setSelectedLanguage}
+        <div className="mb-4">
+          <textarea
+            value={menuText}
+            onChange={(e) => setMenuText(e.target.value)}
+            placeholder="Digite ou cole o texto do seu cardápio aqui..."
+            className="w-full p-4 border border-gray-300 rounded-md min-h-[200px]"
+          />
+        </div>
+
+        {Object.keys(translatedTexts).length > 0 && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nome do cardápio
+            </label>
+            <input
+              type="text"
+              value={menuName}
+              onChange={(e) => setMenuName(e.target.value)}
+              placeholder="Digite um nome para este cardápio"
+              className="w-full p-2 border border-gray-300 rounded-md"
             />
-          </>
+          </div>
+        )}
+        
+        {menuText && (
+          <TextEditor 
+            originalText={menuText}
+            translatedTexts={translatedTexts}
+            fromLanguage={fromLanguage}
+            toLanguages={toLanguages}
+            selectedLanguage={selectedLanguage}
+            onOriginalTextChange={setMenuText}
+            onFromLanguageChange={setFromLanguage}
+            onToLanguagesChange={setToLanguages}
+            onSelectedLanguageChange={setSelectedLanguage}
+          />
         )}
         
         <div className="mt-8 flex flex-col space-y-4">
