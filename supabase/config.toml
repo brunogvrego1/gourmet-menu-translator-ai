@@ -13,5 +13,3 @@ verify_jwt = true
 [functions.verify-payment]
 verify_jwt = true
 
-[functions.ocr-image]
-verify_jwt = true
